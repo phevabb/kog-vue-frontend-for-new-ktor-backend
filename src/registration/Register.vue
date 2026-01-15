@@ -16,7 +16,7 @@
                 </CInputGroup>
                 <CInputGroup class="mb-3">
                   <CInputGroupText>@</CInputGroupText>
-                  <CFormInput placeholder="Email" autocomplete="email" />
+                  <CFormInput placeholder="Email or ID" autocomplete="email" />
                 </CInputGroup>
                 <CInputGroup class="mb-3">
                   <CInputGroupText>

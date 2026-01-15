@@ -102,7 +102,8 @@ async function loadRecords() {
   try {
     const rows = await get_collected_vs_pending_insight()
 
-    records.value = rows.data || rows
+
+    records.value = rows.data.data || rows
   } catch (err) {
     errorMessage.value = err?.message || 'Failed to load fee records.'
   } finally {

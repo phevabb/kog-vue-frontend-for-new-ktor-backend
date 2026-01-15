@@ -22,7 +22,7 @@
                     </CInputGroupText>
                     <CFormInput
                       v-model="username"
-                      placeholder="Email"
+                      placeholder="Email or ID"
                       autocomplete="username"
                       required
                     />

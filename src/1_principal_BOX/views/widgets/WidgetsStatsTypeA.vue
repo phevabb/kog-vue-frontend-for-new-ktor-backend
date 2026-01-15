@@ -283,7 +283,7 @@ onMounted(async () => {
           >44K
           <span class="fs-6 fw-normal"> (-23.6% <CIcon icon="cil-arrow-bottom" />) </span>
         </template>
-        <template #title>Sessions</template>
+        <template #title>Deactivated Students</template>
         <template #action>
           <CDropdown placement="bottom-end">
             <CDropdownToggle color="transparent" class="p-0 text-white" :caret="false">
