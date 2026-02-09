@@ -12,16 +12,7 @@
             <!-- Actions: Search (field + input) + Delete Selected + Add -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <!-- NEW: Search field dropdown -->
-              <CFormSelect
-                v-model="searchField"
-                size="sm"
-                style="min-width: 180px;"
-                label="Choose search field"
-              >
-                <option value="grade_class">Search by Class</option>
-                <option value="academic_year">Search by Academic Year</option>
-                <option value="term">Search by Term</option>
-              </CFormSelect>
+
 
               <!-- Search input -->
               <CFormInput
@@ -92,7 +83,7 @@
                   </CTableDataCell>
 
 
-                  <CTableHeaderCell scope="row">{{ idx + 1 }}</CTableHeaderCell>
+                  <CTableHeaderCell scope="row">{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
                   <CTableDataCell>{{ row.academic_year?.name }}</CTableDataCell>
                   <CTableDataCell>{{ row.grade_class?.name }}</CTableDataCell>
                   <CTableDataCell>{{ row.term?.name }}</CTableDataCell>
@@ -121,13 +112,27 @@
                   <CTableDataCell colspan="7" class="text-center text-body-secondary">
                     No fee structures found
                     <span v-if="searchTerm">
-                      for “{{ searchTerm }}” in
-                      {{ searchField === 'academic_year' ? 'Academic Year' : (searchField === 'term' ? 'Term' : 'Class') }}.
+                      for “{{ searchTerm }}”
+
                     </span>
                   </CTableDataCell>
                 </CTableRow>
               </CTableBody>
             </CTable>
+
+                      <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
+
           </DocsExample>
         </CCardBody>
 
@@ -268,14 +273,19 @@
 import vSelect from "vue3-select";
 import "vue3-select/dist/vue3-select.css";
 
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive,  watch, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
+import Pagination from '@/Pagination.vue'
+
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
 
 const toast = useToast()
 
 
 
-import {st, get_academic_years, get_classes, get_terms, create_fee_structure, get_fee_structures, update_fee_structure, delete_fee_structure } from '@/services/api.js'
+import {rawst, get_academic_years, get_classes, get_terms, create_fee_structure, get_fee_structures, update_fee_structure, delete_fee_structure } from '@/services/api.js'
 
 const feeStructureApi = {
   async listAcademicYears() {
@@ -296,12 +306,11 @@ const feeStructureApi = {
 
 
 
-  async listFeeStructures() {
-    // Assuming you have an API for fetching all fee structures
-    const res = await get_fee_structures()
-
-    return res?.data || []
-  },
+  async listFeeStructures(params = {}) {
+  const res = await get_fee_structures(params)
+  return res?.data
+}
+,
 
   async createFeeStructure(payload) {
 
@@ -326,6 +335,9 @@ const feeStructureApi = {
   },
 }
 
+function onPageChanged(page) {
+  loadFeeStructures(page)
+}
 
 /* ---------- State ---------- */
 const isLoading = ref(false)
@@ -420,7 +432,7 @@ const formFee = reactive({
   termId: '',
   amount: '',
   is_discount: false,
-  discounted_student_ids: [], // array of student IDs
+  filtereddiscounted_student_ids: [], // array of student IDs
 })
 const formValidationMessage = ref('')
 
@@ -434,25 +446,12 @@ const searchPlaceholder = computed(() => {
   switch (searchField.value) {
     case 'academic_year': return 'Search academic year...'
     case 'term': return 'Search term...'
-    default: return 'Search class...'
+    default: return 'Search Fee Structure'
   }
 })
 
-const filteredFeeStructures = computed(() => {
-  const q = searchTerm.value.trim().toLowerCase()
-  if (!q) return feeStructures.value
+const filteredFeeStructures = computed(() => feeStructures.value)
 
-  return feeStructures.value.filter((row) => {
-    if (searchField.value === 'academic_year') {
-      return String(row?.academic_year?.name || '').toLowerCase().includes(q)
-    }
-    if (searchField.value === 'term') {
-      return String(row?.term?.name || '').toLowerCase().includes(q)
-    }
-    // default: class
-    return String(row?.grade_class?.name || '').toLowerCase().includes(q)
-  })
-})
 
 const filteredIds = computed(() => filteredFeeStructures.value.map(r => r.id))
 const allSelected = computed(() =>
@@ -558,7 +557,7 @@ const studentOptionsForSelect = computed(() =>
 
 async function fetchUsers() {
   try {
-    const response = await st();
+    const response = await rawst();
     studentOptions.value = response.data;
 
 
@@ -578,22 +577,38 @@ async function fetchUsers() {
 
 
 
-async function loadFeeStructures() {
+async function loadFeeStructures(page = 1) {
   isLoading.value = true
   errorMessage.value = ''
+
   try {
-    try {
-      const rows = await feeStructureApi
-        .listFeeStructures()
-      return (feeStructures.value = rows)
-    } catch (err) {
-      return (errorMessage.value = err?.message || 'Failed to load fee structures.')
-    }
+    const response = await feeStructureApi.listFeeStructures({
+      page,
+      search: searchTerm.value?.trim() || undefined,
+    })
+
+    const data = response
+
+
+    feeStructures.value = data.results
+    currentPage.value = page
+    totalPages.value = Math.ceil(data.count / pageSize)
+
+  } catch (err) {
+    errorMessage.value =
+      err?.response?.data?.message ||
+      err?.message ||
+      'Failed to load fee structures.'
   } finally {
-    return (isLoading.value = false)
+    isLoading.value = false
   }
 }
 
+
+watch(searchTerm, () => {
+  currentPage.value = 1
+  loadFeeStructures(1)
+})
 
 /* ---------- Modal handlers ---------- */
 function openAddModal() {

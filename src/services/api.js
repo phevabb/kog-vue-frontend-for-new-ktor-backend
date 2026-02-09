@@ -101,18 +101,23 @@ export const resetpasswordconfirm = (data) => api.post('confirm/', data);
 
 
 // fee structure APIs
-export const get_fee_structures = () => api.get("fees/fee-structures"); // APPLIED
+
+export const get_raw_fee_structures = () => api.get("fees/raw-fee-structures");
+export const get_fee_structures = (params) => api.get("fees/fee-structures", { params }); // APPLIED
 export const create_fee_structure = (payload) => api.post("fees/fee-structures/", payload); // APPLIED
 export const update_fee_structure = (id, payload) => api.put(`fees/fee-structures/${id}/`, payload);  // APPLIED
 export const delete_fee_structure = (id) => api.delete(`fees/fee-structures/${id}/`);  // APPLIED
 
 // PAYMENTS APIs
-export const get_payments = () => api.get("fees/payments");
+export const get_payments = (params) => api.get("fees/payments", { params });
 export const create_payment = (payload) => api.post("fees/payments/", payload);
 export const delete_payment = (id) => api.delete(`fees/payments/${id}/`);
 
 // Student APIs
-export const st = () => api.get("student/students");
+export const st = (params) => api.get("student/students", { params });
+export const rawst = () => api.get("student/rawstudents");
+
+
 export const get_num_of_students_insignt = () => api.get("student/students/total/");
 export const get_students_grouped_by_class_insignt = () => api.get("student/students/per_class/");
 
@@ -123,7 +128,7 @@ export const delete_student = (id) => api.delete(`student/students/${id}/`);
 
 
 // student fee records APIs
-export const get_student_fee_record = () => api.get("fees/student-fee-records");
+export const get_student_fee_record = (params) => api.get("fees/student-fee-records", { params });
 export const get_expected_fees_insight = () => api.get("fees/student-fee-records/expected_fees/");
 export const get_collected_vs_pending_insight = () => api.get("fees/student-fee-records/collection_summary/");
 export const percentage_paid_by_class_insight = () => api.get("fees/student-fee-records/unpaid_percentage_by_class/");
@@ -133,18 +138,21 @@ export const update_student_fee_record = (id, payload) => api.put(`fees/student-
 export const delete_student_fee_record = (id) => api.delete(`fees/student-fee-records/${id}/`);
 
 // FAMILY APIs
-export const get_families = () => api.get("family-fees/families");
+
+export const get_raw_families = () => api.get("family-fees/raw-families");
+export const get_families = (params) => api.get("family-fees/families", { params });
 export const create_family = (payload) => api.post("family-fees/families/", payload);
 export const update_family = (id, payload) => api.put(`family-fees/families/${id}/`, payload);
 export const delete_family = (id) => api.delete(`family-fees/families/${id}/`);
 
 // FAMILY FEES RECS APIs
-export const get_family_fee_rec = () => api.get("family-fees/family-fee-records");
+export const get_raw_family_fee_rec = () => api.get("family-fees/raw-family-fee-records");
+export const get_family_fee_rec = (params) => api.get("family-fees/family-fee-records", { params });
 export const create_family_fee_rec = (payload) => api.post("family-fees/family-fee-records/", payload);
 export const delete_family_fee_rec = (id) => api.delete(`family-fees/family-fee-records/${id}/`);
 
 // FAMILY PAYMENTS APIs
-export const get_family_payments = () => api.get("family-fees/family-payments");
+export const get_family_payments = (params) => api.get("family-fees/family-payments", { params });
 export const create_family_payment = (payload) => api.post("family-fees/family-payments/", payload);
 export const delete_family_payment = (id) => api.delete(`family-fees/family-payments/${id}/`);
 // Classes APIs

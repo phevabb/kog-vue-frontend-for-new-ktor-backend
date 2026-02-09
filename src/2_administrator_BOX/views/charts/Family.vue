@@ -27,6 +27,8 @@
                 Delete Selected ({{ selectedIds.length }})
               </CButton>
 
+
+
               <!-- Add Family -->
               <CButton color="primary" size="sm" @click="openAddModal">
                 Add Family
@@ -51,7 +53,7 @@
 
           <!-- TABLE -->
           <!-- Remove <DocsExample> if your project doesn't include it -->
-          <DocsExample>
+          <div>
             <CTable hover responsive>
               <CTableHead>
                 <CTableRow>
@@ -79,7 +81,7 @@
                     <CFormCheck v-model="selectedIds" :value="row.id" aria-label="Select row" />
                   </CTableDataCell>
 
-                  <CTableHeaderCell scope="row">{{ idx + 1 }}</CTableHeaderCell>
+                  <CTableHeaderCell scope="row">{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
                   <CTableDataCell>{{ row.name }}</CTableDataCell>
 
                   <CTableDataCell>
@@ -119,11 +121,26 @@
                 </CTableRow>
               </CTableBody>
             </CTable>
-          </DocsExample>
+
+                       <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
+
+          </div>
         </CCardBody>
       </CCard>
     </CCol>
   </CRow>
+
 
   <!-- Add/Edit Family Modal (with members selection) -->
   <CModal :visible="showFormModal" @close="closeFormModal">
@@ -145,31 +162,20 @@
         </div>
       </div>
 
-      <div class="mb-2 d-flex justify-content-between align-items-center">
-        <CFormLabel class="mb-0">Members (Students)</CFormLabel>
-        <CFormInput
-          v-model="memberSearch"
-          size="sm"
-          placeholder="Filter students..."
-          style="max-width: 220px;"
-        />
-      </div>
+      <div class="mb-2">
+  <CFormLabel class="mb-1">Members (Students)</CFormLabel>
 
-      <!-- Multi-select for members -->
-      <CFormSelect
-        v-model="formFamily.memberIds"
-        multiple
-        :size="8"
-        aria-label="Select family members"
-      >
-        <option
-          v-for="st in filteredStudentOptions"
-          :key="st.id"
-          :value="String(st.user.id)"
-        >
-          {{ st.user.full_name }}
-        </option>
-      </CFormSelect>
+  <v-select
+    v-model="formFamily.memberIds"
+    :options="studentOptionsForSelect"
+    :multiple="true"
+    :close-on-select="false"
+    :reduce="opt => opt.value"
+    label="label"
+    placeholder="Search and select students"
+  />
+</div>
+
 
       <div class="col-md-6 mt-3 d-flex gap-4">
               <CFormSwitch v-model="formFamily.is_active" label="Active Family" />
@@ -292,10 +298,30 @@
 </template>
 
 <script setup>
+import {  watch } from 'vue'
+const searchTerm = ref('')
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
+
+import vSelect from "vue3-select";
+import "vue3-select/dist/vue3-select.css";
+
+import Pagination from '@/Pagination.vue'
 import { ref, computed, reactive, onMounted } from 'vue'
 
-import { st, get_families, create_family, update_family, delete_family } from '../../../services/api'
+import { st, rawst, get_families, create_family, update_family, delete_family } from '../../../services/api'
 import {useToast} from 'vue-toastification'
+
+function onPageChanged(page) {
+  loadFamilies(page)
+}
+
+watch(searchTerm, () => {
+  currentPage.value = 1
+  loadFamilies(1)
+})
+
 
 const toast = useToast()
 
@@ -303,20 +329,22 @@ const familyApi = (() => {
   const clone = (x) => JSON.parse(JSON.stringify(x))
 
   return {
-    async listFamilies() {
+    async listFamilies(params = {}) {
       try {
-        const response = await get_families()
+        const response = await get_families(params)
+
 
         return clone(response.data || [])
       } catch (error) {
-s
+
         throw error
       }
     },
 
     async listStudents() {
       try {
-        const response = await st()
+        const response = await rawst()
+
         return clone(response.data || [])
       } catch (error) {
 
@@ -386,6 +414,12 @@ s
   }
 })()
 
+const studentOptionsForSelect = computed(() =>
+  filteredStudentOptions.value.map(st => ({
+    label: st.user.full_name,
+    value: String(st.user.id),
+  }))
+)
 
 
 /* ---------- State ---------- */
@@ -398,7 +432,7 @@ const families = ref([])
 const students = ref([])
 
 /* Search controls */
-const searchTerm = ref('')
+
 
 /* Selection */
 const selectedIds = ref([])
@@ -508,25 +542,38 @@ function toggleSelectAll() {
 }
 
 /* ---------- Loaders ---------- */
-async function loadFamilies() {
+async function loadFamilies(page = 1) {
   isLoading.value = true
   errorMessage.value = ''
-  try {
-    try {
-      const rows = await familyApi.listFamilies()
 
-      return (families.value = rows)
-    } catch (err) {
-      return (errorMessage.value = err?.message || 'Failed to load families.')
-    }
+  try {
+    const rows = await familyApi.listFamilies({
+      page,
+      search: searchTerm.value?.trim() || undefined,
+    })
+
+
+    families.value = Array.isArray(rows?.results) ? rows.results : []
+    currentPage.value = page
+    totalPages.value = Math.ceil((rows?.count ?? 0) / pageSize)
+
+  } catch (err) {
+    errorMessage.value = err?.message || 'Failed to load families.'
   } finally {
-    return (isLoading.value = false)
+    isLoading.value = false
   }
 }
-async function loadStudents() {
-  const rows = await familyApi.listStudents()
 
-  return (students.value = rows)
+async function loadStudents() {
+
+const rows = await familyApi.listStudents()
+
+
+  const list = Array.isArray(rows) ? rows : Array.isArray(rows?.results) ? rows.results : []
+  students.value = list.filter(Boolean) // remove any undefined/null
+  return students.value
+
+
 }
 
 /* ---------- Modal handlers (Add/Edit) ---------- */
@@ -727,5 +774,17 @@ onMounted(async () => {
 /* Ensure header actions wrap well on smaller screens */
 @media (max-width: 576px) {
   .gap-2 { row-gap: 0.5rem; }
+}
+
+/* Ensure the card area accepts clicks */
+.c-card, .card, .card-body, .c-card-body {
+  position: relative;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* If any global overlay is accidentally left on, disable its clicks */
+.page-overlay, .docs-example, .demo-wrapper, .example, .overlay {
+  pointer-events: none !important; /* Only if you identify it’s not needed */
 }
 </style>

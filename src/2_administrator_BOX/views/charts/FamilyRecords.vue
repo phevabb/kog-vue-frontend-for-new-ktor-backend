@@ -82,7 +82,7 @@
                   </CTableDataCell>
 
 
-                  <CTableHeaderCell scope="row">{{ idx + 1 }}</CTableHeaderCell>
+                  <CTableHeaderCell scope="row">{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
                   <CTableDataCell>{{ row.family?.name }}</CTableDataCell>
                   <CTableDataCell>{{ row.term?.name }}</CTableDataCell>
                   <CTableDataCell>{{ row.academic_year?.name}}</CTableDataCell>
@@ -114,6 +114,19 @@
                 </CTableRow>
               </CTableBody>
             </CTable>
+
+               <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
           </DocsExample>
         </CCardBody>
       </CCard>
@@ -226,6 +239,8 @@
 </template>
 
 <script setup>
+
+import Pagination from '@/Pagination.vue'
 import { ref, computed, reactive, onMounted } from 'vue'
 import {useToast} from 'vue-toastification'
 const toast = useToast()
@@ -233,10 +248,18 @@ import {
   get_family_fee_rec,
   create_family_fee_rec,
   delete_family_fee_rec,
-  get_families,
+  get_raw_families,
   get_terms,
   get_academic_years
 } from '../../../services/api'
+
+
+import {  watch } from 'vue'
+
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
+
 
 const ffrApi = (() => {
   let AY = []
@@ -254,7 +277,7 @@ const ffrApi = (() => {
       const [years, terms, families, records] = await Promise.all([
         get_academic_years(),
         get_terms(),
-        get_families(),
+        get_raw_families (),
         get_family_fee_rec()
       ])
 
@@ -276,9 +299,9 @@ const ffrApi = (() => {
 
   return {
 
-    async listRecords() {
+    async listRecords(params= {}) {
       try {
-        const res = await get_family_fee_rec()
+        const res = await get_family_fee_rec(params)
         _data = res.data || []
         return clone(_data)
       } catch (err) {
@@ -289,7 +312,7 @@ const ffrApi = (() => {
 
     async listFamilies() {
       try {
-        const res = await get_families()
+        const res = await get_raw_families()
         FAMILIES = res.data || []
         return clone(FAMILIES)
       } catch (err) {
@@ -580,14 +603,21 @@ function loadLookups() {
     ffrApi.listAcademicYears().then(x => (academicYears.value = x)),
   ])
 }
-async function loadRecords() {
+async function loadRecords(page = 1) {
   isLoading.value = true
   errorMessage.value = ''
 
   try {
     try {
-      const rows = await ffrApi.listRecords()
-      records.value = rows
+      const rows = await ffrApi.listRecords({
+      page,
+      search: searchTerm.value?.trim() || undefined,
+    })
+
+
+      records.value = Array.isArray(rows?.results) ? rows.results : []
+    currentPage.value = page
+    totalPages.value = Math.ceil((rows?.count ?? 0) / pageSize)
 
     } catch (err) {
       errorMessage.value = err?.message || 'Failed to load family fee records.'
@@ -727,6 +757,14 @@ function confirmDeleteBulk() {
     .finally(() => (isDeleting.value = false))
 }
 
+function onPageChanged(page) {
+  loadRecords(page)
+}
+
+watch(searchTerm, () => {
+  currentPage.value = 1
+  loadRecords(1)
+})
 /* ---------- Init ---------- */
 onMounted(async () => {
   try {

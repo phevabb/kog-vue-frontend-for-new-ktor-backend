@@ -114,7 +114,7 @@
                     <CFormCheck v-model="selectedIds" :value="row.id" aria-label="Select row" />
                   </CTableDataCell>
 
-                  <CTableHeaderCell scope="row">{{ idx + 1 }}</CTableHeaderCell>
+                  <CTableHeaderCell scope="row">{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
                   <CTableDataCell>{{ row.student?.user?.full_name }}</CTableDataCell>
                   <CTableDataCell>{{ row.fee_structure?.grade_class?.name }}</CTableDataCell>
                   <CTableDataCell>{{ row.fee_structure?.term?.name }}</CTableDataCell>
@@ -130,9 +130,9 @@
 
                   <CTableDataCell class="text-end">
                     <CButtonGroup size="sm">
-                      <CButton color="secondary" variant="outline" @click="openEditModal(row)">
+                      <!-- <CButton color="secondary" variant="outline" @click="openEditModal(row)">
                         Edit
-                      </CButton>
+                      </CButton> -->
                       <CButton color="danger" variant="outline" @click="openSingleDeleteConfirm(row)">
                         Delete
                       </CButton>
@@ -157,6 +157,22 @@
                 </CTableRow>
               </CTableBody>
             </CTable>
+
+            <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
+
+
+
           </div>
         </CCardBody>
       </CCard>
@@ -202,15 +218,15 @@
       <div class="mb-3">
         <CFormLabel for="feeStructure">Fee Structure (Class / Term / AY)</CFormLabel>
         <CFormSelect id="feeStructure" v-model="formRecord.feeStructureId">
-          <option value="" disabled>Select Fee Structure</option>
-          <option v-for="fs in feeStructures" :key="fs.id" :value="fs.id">
+          <option value="" disabled selected>Select Fee Structure</option>
+          <option v-for="fs in feeStructures" :key="fs?.id" :value="fs?.id">
             {{ fs.grade_class?.name }} / {{ fs.term?.name }} / {{ fs.academic_year?.name }} - (GH₵ {{ fs?.amount }})
           </option>
         </CFormSelect>
       </div>
 
       <!-- Amount Paid -->
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <CFormLabel for="amountPaid">Amount Paid (GHS)</CFormLabel>
         <CFormInput
           id="amountPaid"
@@ -220,10 +236,10 @@
           v-model="formRecord.amount_paid"
           placeholder="0.00"
         />
-      </div>
+      </div> -->
 
       <!-- Balance -->
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <CFormLabel for="balance">Balance (GHS)</CFormLabel>
         <CFormInput
           id="balance"
@@ -233,17 +249,17 @@
           v-model="formRecord.balance"
           placeholder="0.00"
         />
-      </div>
+      </div> -->
 
       <!-- Fully Paid -->
-      <div class="mb-2">
+      <!-- <div class="mb-2">
         <CFormCheck
           id="fullyPaid"
           v-model="formRecord.is_fully_paid"
           :checked="formRecord.is_fully_paid"
           label="Fully Paid"
         />
-      </div>
+      </div> -->
 
       <!-- Readonly dateCreated on edit -->
       <div class="mt-2 text-body-secondary small" v-if="isEdit && viewDateCreated">
@@ -303,17 +319,22 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
+
+import { ref, computed, reactive, onMounted, watch  } from 'vue'
 import { useToast } from 'vue-toastification'
 const toast = useToast()
-
-import {
+import Pagination from '@/Pagination.vue'
+import { rawst,
   get_student_fee_record,
   create_student_fee_record,
   update_student_fee_record,
   delete_student_fee_record,
-  get_fee_structures,
-  st,
+
+  get_raw_fee_structures,
+
 } from '../../../services/api'
 
 /* ---------- Local state ---------- */
@@ -362,16 +383,18 @@ const studentSearch = ref('')
 /* ---------- API wrapper ---------- */
 const sfrApi = (() => {
   return {
-    async listSfr() {
-      const res = await get_student_fee_record()
-      return res.data
-    },
+    async listSfr(params) {
+    const res = await get_student_fee_record(params)
+
+    return res.data
+  }
+,
     async listStudents() {
-      const res = await st()
+      const res = await rawst()
       return res.data
     },
     async listFeeStructures() {
-      const res = await get_fee_structures()
+      const res = await get_raw_fee_structures()
       return res.data
     },
     async createSfr(payload) {
@@ -485,6 +508,7 @@ function resetForm() {
   formRecord.studentId = ''
   formRecord.feeStructureId = ''
   formRecord.amount_paid = ''
+
   formRecord.balance = ''
   formRecord.is_fully_paid = false
   viewDateCreated.value = ''
@@ -542,22 +566,52 @@ function toggleSelectAll() {
 /* ---------- Loaders ---------- */
 function loadLookups() {
   return Promise.all([
-    sfrApi.listStudents().then(x => (students.value = x ?? [])),
-    sfrApi.listFeeStructures().then(x => (feeStructures.value = x ?? [])),
+    sfrApi.listStudents().then(x => {
+
+      students.value = x ?? []
+    }),
+    sfrApi.listFeeStructures().then(x => {
+
+      feeStructures.value = x ?? []
+    }),
   ])
 }
-async function loadRecords() {
+
+async function loadRecords(page = 1) {
   isLoading.value = true
   errorMessage.value = ''
   try {
-    const rows = await sfrApi.listSfr()
-    records.value = Array.isArray(rows) ? rows : (rows?.data ?? [])
+    const rows = await sfrApi.listSfr({
+  page,
+  search: searchTerm.value?.trim() || undefined,
+})
+
+
+
+records.value = Array.isArray(rows?.results) ? rows.results : []
+currentPage.value = page
+totalPages.value = Math.ceil((rows?.count ?? 0) / pageSize)
+
+
+
+    records.value = Array.isArray(rows?.results) ? rows.results : []
+
   } catch (err) {
     errorMessage.value = err?.message || 'Failed to load fee records.'
   } finally {
     isLoading.value = false
   }
 }
+
+
+function onPageChanged(page) {
+   loadRecords(page)
+}
+
+watch(searchTerm, () => {
+  currentPage.value = 1
+  loadRecords(1)
+})
 
 /* ---------- Modal handlers ---------- */
 function openAddModal() {
@@ -566,6 +620,9 @@ function openAddModal() {
   showFormModal.value = true
 }
 function openEditModal(row) {
+  showFormModal.value = true
+
+
   isEdit.value = true
   editingId.value = row.id
   formRecord.studentId = row?.student?.id ?? ''
@@ -576,7 +633,7 @@ function openEditModal(row) {
   viewDateCreated.value = row?.date_created || ''
   formValidationMessage.value = ''
   studentSearch.value = row?.student?.user?.full_name ?? ''
-  showFormModal.value = true
+
 }
 function closeFormModal() {
   if (!isSubmitting.value) {
@@ -587,6 +644,7 @@ function closeFormModal() {
 
 /* ---------- Delete modals ---------- */
 function openSingleDeleteConfirm(row) {
+
   deleteTarget.value = row
   showDeleteSingleModal.value = true
 }

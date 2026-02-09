@@ -77,7 +77,7 @@
                 <CTableDataCell class="text-center">
                   <CFormCheck v-model="selectedIds" :value="row.id" />
                 </CTableDataCell>
-                <CTableHeaderCell>{{ idx + 1 }}</CTableHeaderCell>
+                <CTableHeaderCell>{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
                 <CTableDataCell>
                   {{ row.family_fee_record?.family?.name }} - {{ row.family_fee_record?.term?.name }} - {{ row.family_fee_record?.academic_year?.name }}
                 </CTableDataCell>
@@ -102,6 +102,20 @@
               </CTableRow>
             </CTableBody>
           </CTable>
+
+          <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
+
         </CCardBody>
       </CCard>
     </CCol>
@@ -205,21 +219,29 @@
 </template>
 
 <script setup>
+const searchTerm = ref('')
+import Pagination from '@/Pagination.vue'
+
 import { ref, computed, onMounted } from 'vue'
-import {
-  CFormCheck, CFormInput, CButton, CButtonGroup, CModal, CModalHeader, CModalTitle, CModalBody,
-  CAlert, CSpinner, CFormLabel, CFormSelect, CRow, CCol, CCard, CCardHeader, CCardBody,
-  CTable, CTableHead, CTableBody, CTableRow, CTableHeaderCell, CTableDataCell
-} from '@coreui/vue'
 
 
+import {  watch } from 'vue'
+
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
+
+
+function onPageChanged(page) {
+  fetchPayments(page)
+}
 
 
 import {
   get_family_payments,
   create_family_payment,
   delete_family_payment,
-  get_family_fee_rec
+  get_raw_family_fee_rec,
 } from '@/services/api'
 
 import { useToast } from 'vue-toastification'
@@ -227,7 +249,10 @@ const toast = useToast()
 const showBulkDeleteModal = ref(false)
 const isDeletingBulk = ref(false)
 
-
+watch(searchTerm, () => {
+  currentPage.value = 1
+  fetchPayments(1)
+})
 const isDeleting = ref(false)
 
 const handleDeletePayment = async () => {
@@ -253,7 +278,7 @@ const familyFeeRecords = ref([])
 // Load Family Fee Records from API
 const fetchFamilyFeeRecords = async () => {
   try {
-    const res = await get_family_fee_rec()
+    const res = await get_raw_family_fee_rec()
     familyFeeRecords.value = res.data || []
   } catch (err) {
     toast.error('Failed to load family fee records.', { position: 'top-right' })
@@ -261,9 +286,9 @@ const fetchFamilyFeeRecords = async () => {
 }
 
 // REAL Payments Store
-const listPayments = async () => {
+const listPayments = async (params = {}) => {
   try {
-    const res = await get_family_payments()
+    const res = await get_family_payments(params)
 
     return res.data || []
   } catch (err) {
@@ -396,7 +421,7 @@ function closeDeleteSingleModal() {
 const payments = ref([])
 const isLoading = ref(false)
 const errorMessage = ref('')
-const searchTerm = ref('')
+
 const dateFilter = ref('')
 const selectedIds = ref([])
 const showFormModal = ref(false)
@@ -409,13 +434,24 @@ const form = ref({
   familyFeeRecordId: '',
 })
 
-const fetchPayments = async () => {
+const fetchPayments = async (page = 1) => {
   isLoading.value = true
   errorMessage.value = ''
   try {
-    const t = await listPayments()
+    const response = await listPayments({
+      page,
+      search: searchTerm.value?.trim() || undefined,
+    })
 
-    payments.value = t
+
+    const rows = response
+
+
+    payments.value = Array.isArray(rows?.results) ? rows.results : []
+    currentPage.value = page
+    totalPages.value = Math.ceil((rows?.count ?? 0) / pageSize)
+
+
 
 
   } catch (err) {

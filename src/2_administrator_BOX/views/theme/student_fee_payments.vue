@@ -9,17 +9,7 @@
             <!-- Actions: Search (field + input) + Delete Selected + Add -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <!-- Search field dropdown -->
-              <CFormSelect
-                v-model="searchField"
-                size="sm"
-                style="min-width: 180px;"
-                aria-label="Choose search field"
-              >
-                <option value="student">Search by Student</option>
-                <option value="grade_class">Search by Class</option>
-                <option value="term">Search by Term</option>
-                <option value="academic_year">Search by Academic Year</option>
-              </CFormSelect>
+
 
               <!-- Search input -->
               <CFormInput
@@ -101,12 +91,14 @@
               </CTableHead>
 
               <CTableBody>
-                <CTableRow v-for="(row, idx) in filteredPayments" :key="row.id">
+                <CTableRow v-for="(row, idx) in filteredPayments" :key="`${row.id}-${currentPage}`">
+
+
                   <CTableDataCell class="text-center">
                     <CFormCheck v-model="selectedIds" :value="row.id" aria-label="Select row" />
                   </CTableDataCell>
 
-                  <CTableHeaderCell scope="row">{{ idx + 1 }}</CTableHeaderCell>
+                  <CTableHeaderCell scope="row">{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
                   <CTableDataCell>{{ row.student_fee_record?.student?.user?.full_name }}</CTableDataCell>
                   <CTableDataCell>{{ row.student_fee_record?.fee_structure?.grade_class?.name }}</CTableDataCell>
                   <CTableDataCell>{{ row.student_fee_record?.fee_structure?.term?.name }}</CTableDataCell>
@@ -151,6 +143,19 @@
                 </CTableRow>
               </CTableBody>
             </CTable>
+
+                        <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
           </DocsExample>
         </CCardBody>
       </CCard>
@@ -273,13 +278,19 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted, watch } from 'vue'
 const dateFilter = ref('')
 import { get_payments, get_student_fee_record, create_payment, delete_payment } from '../../../services/api'
 import { useToast } from 'vue-toastification'
 import { CFormInput } from '@coreui/vue'
 const toast = useToast()
+import Pagination from '@/Pagination.vue'
 const filteredStudentFeeRecords = ref([])
+
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
+
 
 function selectRecord(record){
   formPayment.studentFeeRecordId = record.id
@@ -298,17 +309,19 @@ const paymentApi = (() => {
   const today = () => new Date().toISOString().slice(0, 10)
 
   return {
-    async listPayments() {
-      try {
-        const response = await get_payments()
+async listPayments(params = {}) {
+  try {
+    const response = await get_payments(params)
 
-        // Expecting backend to return: [{ id, studentFeeRecord, date, amount }, ...]
-        return response.data || []
-      } catch (error) {
 
-        throw error
-      }
-    },
+
+    // MUST return the paginated object
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+,
 
     async listStudentFeeRecords() {
 
@@ -443,95 +456,13 @@ const showDeleteBulkModal = ref(false)
 /* ---------- Computed ---------- */
 const searchPlaceholder = computed(() => {
   switch (searchField.value) {
-    case 'academic_year': return 'Search academic year...'
-    case 'term': return 'Search term...'
-    case 'grade_class': return 'Search class...'
-    default: return 'Search student...'
+
+
+    default: return 'Search Payment...'
   }
 })
 
-const filteredPayments = computed(() => {
-  const q = searchTerm.value.trim().toLowerCase()
-  const now = new Date()
-
-
-
-  return payments.value.filter((row) => {
-    const fs = row?.student_fee_record?.fee_structure
-    const student = row?.student_fee_record?.student?.user
-
-    // SEARCH FILTER
-    let matchesSearch = true
-
-    if (q) {
-      switch (searchField.value) {
-        case 'academic_year':
-          matchesSearch = String(
-            fs?.academic_year?.name || ''
-          ).toLowerCase().includes(q)
-          break
-
-        case 'term':
-          matchesSearch = String(
-            fs?.term?.name || ''
-          ).toLowerCase().includes(q)
-          break
-
-        case 'grade_class':
-          matchesSearch = String(
-            fs?.grade_class?.name || ''
-          ).toLowerCase().includes(q)
-          break
-
-        default: // student
-          matchesSearch = String(
-            student?.full_name || ''
-          ).toLowerCase().includes(q)
-      }
-    }
-
-    console.group(`Payment ${row.id}`)
-
-
-    // DATE FILTER
-    if (!dateFilter.value) {
-
-      console.groupEnd()
-      return matchesSearch
-    }
-
-    const paymentDate = new Date(row.date)
-    let matchesDate = true
-
-
-
-    if (dateFilter.value === 'today') {
-      matchesDate =
-        paymentDate.toDateString() === now.toDateString()
-    }
-
-    if (dateFilter.value === '7days') {
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(now.getDate() - 7)
-      matchesDate = paymentDate >= sevenDaysAgo
-    }
-
-    if (dateFilter.value === 'month') {
-      matchesDate =
-        paymentDate.getMonth() === now.getMonth() &&
-        paymentDate.getFullYear() === now.getFullYear()
-    }
-
-    if (dateFilter.value === 'year') {
-      matchesDate =
-        paymentDate.getFullYear() === now.getFullYear()
-    }
-
-
-
-    return matchesSearch && matchesDate
-  })
-})
+const filteredPayments = computed(() => payments.value || [])
 
 const filteredIds = computed(() => filteredPayments.value.map(r => r.id))
 const allSelected = computed(() =>
@@ -593,19 +524,33 @@ async function loadStudentFeeRecords() {
 }
 
 
-async function loadPayments() {
+async function loadPayments(page = 1) {
   isLoading.value = true
   errorMessage.value = ''
-  try {
-    try {
-      const rows = await paymentApi.listPayments()
 
-      return (payments.value = rows)
-    } catch (err) {
-      return (errorMessage.value =  'Failed to load payments.')
+  try {
+    const params = {
+      page,
+      search: searchTerm.value?.trim() || undefined,
     }
+
+
+
+    const rows = await paymentApi.listPayments(params)
+
+
+
+    payments.value = rows.results
+    totalPages.value = Math.ceil(rows.count / pageSize)
+    currentPage.value = page
+
+
+
+  } catch (err) {
+    console.error(err)
+    errorMessage.value = 'Failed to load payments.'
   } finally {
-    return (isLoading.value = false)
+    isLoading.value = false
   }
 }
 
@@ -719,6 +664,16 @@ function confirmDeleteSingle() {
     .finally(() => (isDeleting.value = false))
 }
 
+function onPageChanged(page) {
+  loadPayments(page)
+}
+
+
+watch(searchTerm, () => {
+  currentPage.value = 1
+  loadPayments(1)
+})
+
 function confirmDeleteBulk() {
   const ids = [...selectedIds.value]
   if (ids.length === 0) return
@@ -746,8 +701,6 @@ onMounted(async () => {
   try {
     isLoading.value = true
     const a = await get_student_fee_record()
-
-
 
     studentFeeRecords.value = a.data
 

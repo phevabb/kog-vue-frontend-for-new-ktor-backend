@@ -100,7 +100,7 @@
     </CTableDataCell>
 
 
-    <CTableHeaderCell>{{ idx + 1 }}</CTableHeaderCell>
+    <CTableHeaderCell>{{ (currentPage - 1) * pageSize + idx + 1 }}</CTableHeaderCell>
     <CTableDataCell>{{ student.user.full_name }}</CTableDataCell>
     <CTableDataCell>{{ classValueToLabel(student.current_class) }}</CTableDataCell>
     <CTableDataCell>{{ student.contact_of_father }}</CTableDataCell>
@@ -123,6 +123,20 @@
 
 
           </CTable>
+
+                      <!-- Pagination + Range -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-changed="onPageChanged"
+            />
+            <div style="font-size: 14px; color: #7f8c8d;">
+              {{ showingRange }}
+            </div>
+          </div>
+
+
         </CCardBody>
 
 
@@ -401,19 +415,23 @@
 </template>
 
 <script setup>
-
+const searchTerm = ref('')
 import { useToast } from 'vue-toastification'
 const toast = useToast()
 const loading = ref(false)
 
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const showDeleteModal = ref(false)
 const studentToDelete = ref(null)
 const students = ref([])
 
+import Pagination from '@/Pagination.vue'
 
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = ref(1)
 
 
 import {st} from '@/services/api'
@@ -433,6 +451,7 @@ function closeBulkDeleteConfirm() {
     showDeleteBulkModal.value = false
   }
 }
+
 
 
 
@@ -457,36 +476,44 @@ async function confirmDeleteBulk() {
   }
 }
 
+function onPageChanged(page) {
+  fetchUsers(page)
+}
 
 
-async function fetchUsers() {
+async function fetchUsers(page = 1) {
   loading.value = true
 
   try {
-    const response = await st();
+    const response = await st({
+      page,
+      search: searchTerm.value?.trim() || undefined,
+    })
 
+    const data = response.data
 
+    students.value = data.results
+    currentPage.value = page
+    totalPages.value = Math.ceil(data.count / pageSize)
 
-    students.value = response.data;
-
-
-
-  }  catch (err) {
-
-
+  } catch (err) {
     if (err.code === 'ERR_NETWORK') {
-      toast.error('Network error. Please check your internet connection.', { position: 'top-right' });
+      toast.error('Network error. Please check your internet connection.', { position: 'top-right' })
     } else if (err.response) {
-      // API returned an error response
-      toast.error(err.response.data?.message || 'Failed to fetch students.', { position: 'top-right' });
+      toast.error(err.response.data?.message || 'Failed to fetch students.', { position: 'top-right' })
     } else {
-      // Unknown error
-      toast.error('An unexpected error occurred while fetching students.', { position: 'top-right' });
+      toast.error('An unexpected error occurred while fetching students.', { position: 'top-right' })
     }
   } finally {
     loading.value = false
   }
 }
+
+watch(searchTerm, () => {
+  currentPage.value = 1
+  fetchUsers(1)
+})
+
 
 onMounted(() => {
   fetchUsers();
@@ -563,7 +590,7 @@ const toClassLabel = (value) => {
 
 
 
-const searchTerm = ref('')
+
 const showFormModal = ref(false)
 const isEdit = ref(false)
 const currentStudent = ref(null)
@@ -615,18 +642,10 @@ class_seeking_admission_to: '', // e.g., 'jhs 1'
 
 /*all refs above*/
 
+const filteredStudents = computed(() =>
+  students.value.filter(s => s?.user?.is_active !== false)
+)
 
-const filteredStudents = computed(() => {
-  const term = (searchTerm.value || '').trim().toLowerCase()
-
-  // 1) Hide inactive
-  // 2) Be null-safe for s.user
-  const base = students.value.filter(s => s?.user?.is_active !== false)
-
-  if (!term) return base
-
-  return base.filter(s => (s?.user?.full_name || '').toLowerCase().includes(term))
-})
 
 // Keep IDs normalized to numbers so selection/deletion logic is robust
 const filteredIds = computed(() => filteredStudents.value.map(s => Number(s.id)))
