@@ -71,7 +71,12 @@
             <span class="text-body-secondary small">Loading records…</span>
           </div>
 
-          <CTable hover responsive>
+          <div v-if="isLoading" class="text-center my-5">
+            <CSpinner color="primary" class="me-2" />
+            <span class="text-primary fw-bold">Loading records...</span>
+          </div>
+
+          <CTable v-else hover responsive>
             <CTableHead>
               <CTableRow>
                 <CTableHeaderCell class="text-center" style="width:48px;">
@@ -108,9 +113,10 @@
                 <CTableDataCell class="text-end">{{ formatAmount(row.amount_paid) }}</CTableDataCell>
                 <CTableDataCell class="text-end">{{ formatAmount(row.balance) }}</CTableDataCell>
                 <CTableDataCell>
-                  <CBadge :color="row.is_fully_paid ? 'success' : 'warning'">
-                    {{ row.is_fully_paid ? 'Yes' : 'No' }}
+                  <CBadge :color="Number(row.balance) === 0 ? 'success' : 'warning'">
+                    {{ Number(row.balance) === 0 ? 'Yes' : 'No' }}
                   </CBadge>
+
                 </CTableDataCell>
                 <CTableDataCell>{{ formatDateTime(row.date_created) }}</CTableDataCell>
                 <CTableDataCell class="text-end">
@@ -180,7 +186,7 @@
       <div class="mb-3">
         <CFormLabel>Fee Structure</CFormLabel>
         <CFormSelect v-model="formRecord.feeStructureId">
-          <option value="" disabled>Select Fee Structure</option>
+          <option value="" disabled selected>Select Fee Structure</option>
           <option v-for="fs in feeStructures" :key="fs.id" :value="fs.id">
             {{ fs.grade_class?.name }} / {{ fs.term?.name }} / {{ fs.academic_year?.name }}
             – GH₵ {{ formatAmount(fs.amount) }}
@@ -337,6 +343,7 @@ function formatDateTime(iso) {
 }
 
 function resetForm() {
+
   formRecord.studentId = ''
   formRecord.feeStructureId = ''
   studentSearch.value = ''
@@ -425,6 +432,7 @@ async function loadRecords(page = 1, force = false) {
     }
 
     const res = await get_student_fee_record(params)
+
     const data = res.data || {}
 
     pageCache.value.set(cacheKey, { results: data.results || [], count: data.count || 0 })
@@ -467,6 +475,16 @@ function openAddModal() {
   showFormModal.value = true
 }
 
+
+function closeDeleteSingleModal() {
+  if (isDeleting.value) return
+  showDeleteSingleModal.value = false
+  deleteTarget.value = null
+}
+function closeBulkDeleteConfirm() {
+  if (isDeleting.value) return
+  showDeleteBulkModal.value = false
+}
 function closeFormModal() {
   if (isSubmitting.value) return
   showFormModal.value = false
@@ -478,17 +496,22 @@ async function submitForm() {
   isSubmitting.value = true
 
   const payload = {
-    student: formRecord.studentId,
-    fee_structure: formRecord.feeStructureId,
+
+
+    student_id: formRecord.studentId,
+    fee_structure_id: formRecord.feeStructureId,
   }
 
   try {
+
     const res = await create_student_fee_record(payload)
+
     toast.success('Fee record created.')
     showFormModal.value = false
     resetForm()
     loadRecords(currentPage.value, true)
   } catch (err) {
+
     formValidationMessage.value = err.response?.data?.detail || 'Failed to create record.'
     toast.error(formValidationMessage.value)
   } finally {
@@ -515,6 +538,7 @@ async function confirmDeleteSingle() {
     toast.error('Failed to delete record.')
   } finally {
     isDeleting.value = false
+    closeDeleteSingleModal()
   }
 }
 
@@ -537,6 +561,7 @@ async function confirmDeleteBulk() {
     toast.error('Some deletions failed.')
   } finally {
     isDeleting.value = false
+    closeBulkDeleteConfirm()
   }
 }
 

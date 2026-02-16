@@ -43,8 +43,14 @@
             <span class="text-body-secondary small">Loading fee structures…</span>
           </div>
 
+
           <DocsExample>
-            <CTable hover responsive>
+            <div v-if="isLoading" class="text-center my-5">
+            <CSpinner color="primary" class="me-2" />
+            <span class="text-primary fw-bold">Loading fee structures...</span>
+          </div>
+
+            <CTable v-else hover responsive>
               <CTableHead>
                 <CTableRow>
                   <CTableHeaderCell scope="col" class="text-center" style="width: 48px">
@@ -67,6 +73,8 @@
                   </CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
+
+
 
               <CTableBody>
                 <CTableRow v-for="(row, idx) in rows" :key="row.id">
@@ -151,7 +159,7 @@
       <div class="mb-3">
         <CFormLabel for="academic_year">Academic Year</CFormLabel>
         <CFormSelect id="academic_year" v-model="formFee.academicYearId">
-          <option value="" disabled>Select Academic Year</option>
+          <option value="" disabled selected >Select Academic Year</option>
           <option v-for="ay in academicYears" :key="ay.id" :value="ay.id">
             {{ ay.name }}
           </option>
@@ -162,7 +170,7 @@
       <div v-if="!formFee.is_discount" class="mb-3">
         <CFormLabel for="grade_class">Class (Grade)</CFormLabel>
         <CFormSelect id="grade_class" v-model="formFee.gradeClassId">
-          <option value="" disabled>Select Class</option>
+          <option value="" disabled selected>Select Class</option>
           <option v-for="gc in gradeClasses" :key="gc.id" :value="gc.id">
             {{ gc.name }}
           </option>
@@ -173,7 +181,7 @@
       <div class="mb-3">
         <CFormLabel for="term">Term</CFormLabel>
         <CFormSelect id="term" v-model="formFee.termId">
-          <option value="" disabled>Select Term</option>
+          <option value="" disabled selected >Select Term</option>
           <option v-for="t in terms" :key="t.id" :value="t.id">
             {{ t.name }}
           </option>
@@ -234,6 +242,8 @@
     </CModalFooter>
   </CModal>
 
+
+
   <!-- Confirm Delete (Single) -->
   <CModal :visible="showDeleteSingleModal" @close="closeDeleteSingleModal">
     <CModalHeader>
@@ -256,7 +266,8 @@
       >
         Cancel
       </CButton>
-      <CButton color="danger" @click="confirmDeleteSingle" :disabled="isDeleting">
+
+      <CButton color="danger" @click="() => { confirmDeleteSingle(); closeDeleteSingleModal(); }" :disabled="isDeleting">
         <CSpinner size="sm" v-if="isDeleting" class="me-2" />Delete
       </CButton>
     </CModalFooter>
@@ -627,6 +638,8 @@ async function submitForm() {
     is_discounted: formFee.is_discount,
   };
 
+
+
   try {
     if (isEdit.value && editingId.value != null) {
       const res = await update_fee_structure(editingId.value, payload);
@@ -653,6 +666,7 @@ async function submitForm() {
     showFormModal.value = false;
     resetForm();
   } catch (err) {
+    console.error("Error saving fee structure: print", err);
     formValidationMessage.value =
       err?.response?.data?.message ||
       err?.message ||
@@ -735,6 +749,7 @@ async function confirmDeleteSingle() {
     toast.error(friendlyDeleteError(error, deleteTarget.value.id), { position: "top-right" });
   } finally {
     isDeleting.value = false;
+    closeDeleteSingleModal();
   }
 }
 

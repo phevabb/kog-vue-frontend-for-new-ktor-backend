@@ -39,7 +39,14 @@
             <span class="text-body-secondary small">Loading family fee records…</span>
           </div>
 
-          <CTable hover responsive>
+
+<div v-if="isLoading" class="text-center my-5">
+            <CSpinner color="primary" class="me-2" />
+            <span class="text-primary fw-bold">Loading family fee records...</span>
+          </div>
+
+
+          <CTable v-else hover responsive>
             <CTableHead>
               <CTableRow>
                 <CTableHeaderCell class="text-center" style="width:48px">
@@ -120,28 +127,31 @@
       <CModalTitle>{{ isEdit ? 'Edit Family Fee Record' : 'Add Family Fee Record' }}</CModalTitle>
     </CModalHeader>
     <CModalBody>
-      <CFormSelect
-        v-model="form.familyId"
-        label="Family"
-        :options="familyOptions"
-        :disabled="isSubmitting"
-      />
+      <CFormLabel for="family">Family</CFormLabel>
+<CFormSelect id="family" v-model="form.familyId" :disabled="isSubmitting">
+  <option value="" disabled selected>Select Family</option>
+  <option v-for="f in familyOptions" :key="f.id" :value="f.id">
+    {{ f.name }}
+  </option>
+</CFormSelect>
 
-      <CFormSelect
-        v-model="form.termId"
-        label="Term"
-        :options="termOptions"
-        :disabled="isSubmitting"
-        class="mt-3"
-      />
+<CFormLabel for="term">Term</CFormLabel>
+<CFormSelect id="term" v-model="form.termId" :disabled="isSubmitting" class="mt-3">
+  <option value="" disabled selected>Select Term</option>
+  <option v-for="t in termOptions" :key="t.id" :value="t.id">
+    {{ t.name }}
+  </option>
+</CFormSelect>
 
-      <CFormSelect
-        v-model="form.academicYearId"
-        label="Academic Year"
-        :options="academicYearOptions"
-        :disabled="isSubmitting"
-        class="mt-3"
-      />
+<CFormLabel for="academic_year">Academic Year</CFormLabel>
+<CFormSelect id="academic_year" v-model="form.academicYearId" :disabled="isSubmitting" class="mt-3">
+  <option value="" disabled selected>Select Academic Year</option>
+  <option v-for="ay in academicYearOptions" :key="ay.id" :value="ay.id">
+    {{ ay.name }}
+  </option>
+</CFormSelect>
+
+
 
       <CFormInput
         v-model.number="form.amountToPay"
@@ -157,9 +167,11 @@
         Created: {{ formatDate(form.createdAt) }}
       </div>
 
-      <CAlert color="danger" :show="!!formValidationMessage" class="mt-3">
-        {{ formValidationMessage }}
-      </CAlert>
+      <CAlert color="danger" v-if="formValidationMessage" class="mt-3">
+  {{ formValidationMessage }}
+</CAlert>
+
+
     </CModalBody>
     <CModalFooter>
       <CButton color="secondary" variant="outline" @click="closeFormModal" :disabled="isSubmitting">
@@ -277,16 +289,17 @@ const showingRange = computed(() => {
 })
 
 const familyOptions = computed(() =>
-  families.value.map(f => ({ value: f.id, label: f.name }))
+  families.value.map(f => ({ id: f.id, name: f.name }))
 )
 
 const termOptions = computed(() =>
-  terms.value.map(t => ({ value: t.id, label: t.name }))
+  terms.value.map(t => ({ id: t.id, name: t.name }))
 )
 
 const academicYearOptions = computed(() =>
-  academicYears.value.map(ay => ({ value: ay.id, label: ay.name }))
+  academicYears.value.map(ay => ({ id: ay.id, name: ay.name }))
 )
+
 
 const allSelected = computed(() =>
   records.value.length > 0 && records.value.every(r => selectedIds.value.includes(r.id))
@@ -376,10 +389,13 @@ async function loadLookups() {
       get_academic_years()
     ])
 
+
     families.value      = famRes.data  || []
     terms.value         = termRes.data || []
     academicYears.value = ayRes.data   || []
-  } catch {
+
+
+  } catch (err) {
     toast.error('Failed to load dropdown data')
   }
 }
@@ -429,6 +445,7 @@ async function deleteSingle() {
     }
   } finally {
     isDeleting.value = false
+    closeDeleteSingleModal()
   }
 }
 
@@ -477,8 +494,8 @@ async function saveRecord() {
     formValidationMessage.value = 'Academic Year is required'
     return
   }
-  if (!form.amountToPay || form.amountToPay < 0) {
-    formValidationMessage.value = 'Amount must be ≥ 0'
+  if (!form.amountToPay || form.amountToPay <= 0) {
+    formValidationMessage.value = 'Amount must be more than 0.00'
     return
   }
 
@@ -504,7 +521,7 @@ async function saveRecord() {
       toast.success('Record updated')
     } else {
       result = await create_family_fee_rec(payload)
-      records.value.unshift(result)
+      records.value.unshift(result.data)
       totalCount.value += 1
       toast.success('Record created')
     }

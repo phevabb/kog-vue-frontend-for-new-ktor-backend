@@ -51,7 +51,14 @@
           </div>
 
           <DocsExample>
-            <CTable hover responsive>
+
+            <div v-if="isLoading" class="text-center my-5">
+            <CSpinner color="primary" class="me-2" />
+            <span class="text-primary fw-bold">Loading payments...</span>
+          </div>
+
+
+            <CTable v-else  hover responsive>
               <CTableHead>
                 <CTableRow>
                   <CTableHeaderCell scope="col" class="text-center" style="width: 48px;">
@@ -466,6 +473,7 @@ async function submitForm() {
     resetForm()
     loadPayments(currentPage.value, true) // refresh
   } catch (err) {
+
     formValidationMessage.value = err.response?.data?.amount?.[0] || 'Failed to record payment.'
     toast.error(formValidationMessage.value)
   } finally {
@@ -500,6 +508,7 @@ async function confirmDeleteSingle() {
     toast.error('Failed to delete payment.')
   } finally {
     isDeleting.value = false
+    closeDeleteSingleModal()
   }
 }
 
@@ -529,6 +538,7 @@ async function confirmDeleteBulk() {
     toast.error('Some deletions failed.')
   } finally {
     isDeleting.value = false
+    closeBulkDeleteConfirm()
   }
 }
 

@@ -210,6 +210,9 @@ import vSelect from 'vue3-select'
 import 'vue3-select/dist/vue3-select.css'
 import Pagination from '@/Pagination.vue'
 
+const editingId = ref(null)
+
+
 import { rawst, get_families, create_family, update_family, delete_family } from '@/services/api'
 
 const toast = useToast()
@@ -261,7 +264,7 @@ const showingRange = computed(() => {
 const studentOptions = computed(() =>
   students.value.map(s => ({
     label: s.user?.full_name || 'Unnamed',
-    value: String(s.id || s.user?.id),
+    value: String( s.user?.id),
   }))
 )
 
@@ -333,8 +336,9 @@ async function loadFamilies() {
 async function loadStudents() {
   try {
     const res = await rawst()
+
     students.value = res.data || []
-  } catch {
+  } catch (err) {
     toast.error('Failed to load students')
   }
 }
@@ -342,21 +346,26 @@ async function loadStudents() {
 function openAddModal() {
   isEdit.value = false
   Object.assign(form, { name: '', memberIds: [], is_active: true, deactivation_reason: '' })
+  editingId.value = null
   formValidationMessage.value = ''
   showFormModal.value = true
 }
 
 function openEditModal(family) {
   isEdit.value = true
+  editingId.value = family.id   // ✅ STORE THE ID
+
   Object.assign(form, {
     name: family.name || '',
     memberIds: (family.members || []).map(m => String(m.id || m.user?.id)),
     is_active: !!family.is_active,
     deactivation_reason: family.deactivation_reason || '',
   })
+
   formValidationMessage.value = ''
   showFormModal.value = true
 }
+
 
 function closeFormModal() {
   if (isSubmitting.value) return
@@ -384,24 +393,34 @@ async function saveFamily() {
     deactivation_reason: form.is_active ? '' : (form.deactivation_reason.trim() || undefined),
   }
 
+
+
   try {
     let updatedFamily
     if (isEdit.value) {
-      updatedFamily = await update_family(/* id from somewhere? wait -- you need to store it */)
+      updatedFamily = await update_family(editingId.value, payload)
       // Note: you lost editingId -- add ref if needed or pass from row
+
+      const idx = families.value.findIndex(f => f.id === updatedFamily.data.id)
+      if (idx !== -1) {
+        families.value[idx] = updatedFamily.data
+      }
       toast.success('Family updated')
     } else {
       updatedFamily = await create_family(payload)
-      families.value.unshift(updatedFamily)
+
+      families.value.unshift(updatedFamily.data)
       totalCount.value += 1
       toast.success('Family created')
     }
     closeFormModal()
   } catch (err) {
+
     formValidationMessage.value = err.response?.data?.detail || 'Save failed'
     toast.error(formValidationMessage.value)
   } finally {
     isSubmitting.value = false
+    closeFormModal()
   }
 }
 
@@ -432,6 +451,7 @@ async function deleteSingle() {
     toast.error(msg)
   } finally {
     isDeleting.value = false
+    closeDeleteSingleModal()
   }
 }
 
@@ -442,12 +462,16 @@ async function deleteBulk() {
   const ids = [...selectedIds.value]
 
   try {
-    await Promise.allSettled(ids.map(id => delete_family(id)))
+    for (const id of ids) {
+      await delete_family(id)
+    }
+
     families.value = families.value.filter(f => !ids.includes(f.id))
     selectedIds.value = []
     totalCount.value = Math.max(0, totalCount.value - ids.length)
+
     toast.success(`Deleted ${ids.length} families`)
-  } catch {
+  } catch (error) {
     toast.error('Some deletions failed')
   } finally {
     isDeleting.value = false

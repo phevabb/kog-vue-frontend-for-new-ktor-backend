@@ -41,7 +41,12 @@
             <span class="text-body-secondary small">Loading payments…</span>
           </div>
 
-          <CTable hover responsive>
+          <div v-if="isLoading" class="text-center my-5">
+            <CSpinner color="primary" class="me-2" />
+            <span class="text-primary fw-bold">Loading payments...</span>
+          </div>
+
+          <CTable v-else hover responsive>
             <CTableHead>
               <CTableRow>
                 <CTableHeaderCell class="text-center" style="width:48px">
@@ -80,9 +85,7 @@
                 </CTableDataCell>
                 <CTableDataCell class="text-end">
                   <CButtonGroup size="sm">
-                    <CButton color="secondary" variant="outline" @click="openEditModal(payment)">
-                      Edit
-                    </CButton>
+
                     <CButton color="danger" variant="outline" @click="openDeleteConfirm(payment)">
                       Delete
                     </CButton>
@@ -120,11 +123,19 @@
     </CModalHeader>
     <CModalBody>
       <CFormSelect
-        v-model="form.familyFeeRecordId"
-        label="Family Fee Record"
-        :options="feeRecordOptions"
-        :disabled="isSubmitting || isLoadingRecords"
-      />
+  v-model="form.familyFeeRecordId"
+  label="Family Fee Record"
+  :disabled="isSubmitting || isLoadingRecords"
+>
+  <option value="" disabled selected>Select Family</option>
+  <option
+    v-for="fr in feeRecordOptions"
+    :key="fr.value"
+    :value="fr.value"
+  >
+    {{ fr.label }}
+  </option>
+</CFormSelect>
 
       <CFormInput
         v-model.number="form.amount"
@@ -144,9 +155,10 @@
         class="mt-3"
       />
 
-      <CAlert color="danger" :show="!!formError" class="mt-3">
-        {{ formError }}
-      </CAlert>
+<CAlert color="danger" v-if="formError" class="mt-3">
+  {{ formError }}
+</CAlert>
+
     </CModalBody>
     <CModalFooter>
       <CButton color="secondary" variant="outline" @click="closeFormModal" :disabled="isSubmitting">
@@ -414,9 +426,15 @@ async function savePayment() {
     if (isEdit.value) {
       // Note: using create with ID as update – replace with real update if available
       await create_family_payment(deleteTarget.value.id, payload) // adjust API
+      payments.value = payments.value.map(p =>
+        p.id === deleteTarget.value.id ? { ...p, ...payload } : p
+      )
       toast.success('Payment updated')
     } else {
-      await create_family_payment(payload)
+      const results = await create_family_payment(payload)
+
+      payments.value.unshift(results.data)
+      totalCount.value += 1
       toast.success('Payment recorded')
     }
 
@@ -424,11 +442,13 @@ async function savePayment() {
     await loadPayments()
     closeFormModal()
   } catch (err) {
+
     const data = err.response?.data || {}
     formError.value = data.amount?.[0] || data.non_field_errors?.[0] || data.message || 'Failed to save payment'
     toast.error(formError.value)
   } finally {
     isSubmitting.value = false
+    closeFormModal()
   }
 }
 
@@ -459,6 +479,7 @@ async function deleteSingle() {
     toast.error(msg.includes('constraint') ? 'Cannot delete – linked to other data' : msg)
   } finally {
     isDeleting.value = false
+    closeDeleteSingleModal()
   }
 }
 

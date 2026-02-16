@@ -654,7 +654,7 @@ async function submitForm() {
         nationality: form.value.nationality?.trim() || 'Ghanaian',
         date_of_birth: form.value.date_of_birth || undefined,
         is_active: form.value.active,
-        role: 'STUDENT',
+        role: 'student',
         is_staff: false,
       },
       current_class: Number(form.value.current_class),
