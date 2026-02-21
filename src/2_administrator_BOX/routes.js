@@ -23,13 +23,7 @@ export const adminRoutes = {
     },
 
 
-    {
-      path: 'student/student-details',
-      name: 'student_details',
-      component: () =>
-        import('@/2_administrator_BOX/views/base/StudentDetail.vue'),
-      meta: { roles: ['administrator'] },
-    },
+
 
 
 
