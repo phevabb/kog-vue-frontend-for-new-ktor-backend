@@ -96,26 +96,38 @@
       <v-col cols="12" md="8">
         <!-- Stats (demo) -->
         <v-row>
-          <v-col cols="12" sm="4">
+          <!-- <v-col cols="12" sm="4">
             <v-card elevation="3" class="pa-4 text-center">
               <h4 class="text-body-2 text-grey">Attendance</h4>
               <h2>{{ stats.attendance }}%</h2>
             </v-card>
-          </v-col>
+          </v-col> -->
 
-          <v-col cols="12" sm="4">
+          <v-col cols="12" sm="6">
             <v-card elevation="3" class="pa-4 text-center">
               <h4 class="text-body-2 text-grey">Total Payments</h4>
-              <h2>GHS {{ stats.total_payments }}</h2>
+              <h2>
+                GHS {{ Number(stats.total_payments).toLocaleString('en-GH', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                }) }}
+              </h2>
             </v-card>
           </v-col>
 
-          <v-col cols="12" sm="4">
+          <v-col cols="12" sm="6">
             <v-card elevation="3" class="pa-4 text-center">
-              <h4 class="text-body-2 text-grey">Balance</h4>
-              <h2>GHS {{ stats.balance }}</h2>
+              <h4 class="text-body-2 text-grey">Amount Owed</h4>
+              <h2>
+                GHS {{ Number(stats.balance).toLocaleString('en-GH', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                }) }}
+              </h2>
             </v-card>
           </v-col>
+
+
         </v-row>
 
         <!-- Academic Info -->
@@ -133,15 +145,62 @@
           </v-list>
         </v-card>
 
-        <!-- Additional Notes -->
-        <v-card elevation="3" class="pa-4 mt-4">
-          <h3 class="text-subtitle-1 font-weight-bold mb-2">Additional Info</h3>
-          <p>{{ student.other_related_info || 'No additional information.' }}</p>
-        </v-card>
+
 
         <!-- Payment History (demo) -->
         <v-card elevation="3" class="pa-4 mt-4">
           <h3 class="text-subtitle-1 font-weight-bold mb-4">Payment History</h3>
+
+          <v-table density="comfortable">
+            <thead>
+              <tr>
+                <th>#</th>
+
+                <th>Term</th>
+                  <th>Academic Year</th>
+                  <th>Class</th>
+                  <th class="text-end">Amount Paid (GHS)</th>
+                  <th class="text-end">Balance (GHS)</th>
+                  <th>Fully Paid</th>
+
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(p, i) in payments" :key="i">
+                <td>{{ i + 1 }}</td>
+
+                <td>{{ p.term }}</td>
+                <td>{{ p.academicyear }}</td>
+                <td>{{ p.gradeclass }}</td>
+                <td class="text-end">{{ p.amount }}</td>
+                <td class="text-end">{{ p.balance }}</td>
+
+                <td>
+                  <v-chip
+                    :color="p.fullypaid ? 'success' : 'error'"
+                    variant="flat"
+                    size="small"
+                    class="text-white"
+                  >
+                    <v-icon
+                      size="16"
+                      class="mr-1"
+                    >
+                      {{ p.fullypaid ? 'mdi-check-circle' : 'mdi-alert-circle' }}
+                    </v-icon>
+
+                    {{ p.fullypaid ? 'Fully Paid' : 'Not Paid' }}
+                  </v-chip>
+                </td>
+
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card>
+
+        <!-- Academic records (demo) -->
+        <v-card elevation="3" class="pa-4 mt-4">
+          <h3 class="text-subtitle-1 font-weight-bold mb-4">Academic records</h3>
 
           <v-table density="comfortable">
             <thead>
@@ -171,7 +230,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue"
-import { student_profile } from "@/services/api"
+import { student_profile, get_student_payment_list } from "@/services/api"
 
 const loading = ref(false)
 const errorMsg = ref("")
@@ -196,6 +255,9 @@ const student = ref({
   is_active: false,
 })
 
+const payments = ref([])
+
+
 onMounted(async () => {
   try {
     loading.value = true
@@ -210,6 +272,24 @@ onMounted(async () => {
     const uid = userLocal.user_id
 
     const res = await student_profile(userLocal.user_id)
+    const paymentsRes = await get_student_payment_list(userLocal.user_id)
+
+    payments.value = paymentsRes.data.map(item => ({
+      term: item.fee_structure.term.name,
+      academicyear: item.fee_structure.academic_year.name,
+      balance: item.balance,
+      gradeclass: item.fee_structure.grade_class.name,
+      fullypaid: item.is_fully_paid,
+  date: new Date(item.date_created).toLocaleDateString(),
+  amount: Number(item.amount_paid)
+}))
+
+
+
+    stats.value.total_payments = Number(res.data.total_amount_paid)
+    stats.value.balance = Number(res.data.total_balance)
+    stats.value.is_fully_cleared = res.data.is_fully_cleared
+
 
     const { user, profile } = res.data || {}
 
@@ -264,16 +344,14 @@ onMounted(async () => {
 })
 
 const stats = ref({
-  attendance: 95,
-  total_payments: 1580,
-  balance: 220,
+  // attendance: 95, // keep if still needed
+  total_payments: 0,
+  balance: 0,
+  is_fully_cleared: false,
 })
 
-const payments = ref([
-  { date: "2025-01-10", amount: 500 },
-  { date: "2025-02-05", amount: 450 },
-  { date: "2025-03-14", amount: 630 },
-])
+
+
 
 const initials = computed(() => {
   if (!student.value.full_name) return "S"

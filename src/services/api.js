@@ -8,10 +8,10 @@ import axios from 'axios'
 
 
 const api = axios.create({
-   // baseURL: 'http://127.0.0.1:8000/api/',
+ //  baseURL: 'http://127.0.0.1:8000/api/',
 
 
-   baseURL: 'https://feessystem-aidooemmanuelkwame1416-zluuv6f0.leapcell.dev/api/',
+     baseURL: 'https://feessystem-aidooemmanuelkwame1416-zluuv6f0.leapcell.dev/api/',
 
 
   headers: {
@@ -114,14 +114,9 @@ export const create_payment = (payload) => api.post("fees/payments/", payload);
 export const delete_payment = (id) => api.delete(`fees/payments/${id}/`);
 
 // Student APIs
-
-
-
 export const student_profile = (id) => api.get(`student/student-profile/${id}/`);
 export const st = (params) => api.get("student/students", { params });
 export const rawst = () => api.get("student/rawstudents");
-
-
 export const get_num_of_students_insignt = () => api.get("student/students/total/");
 export const get_students_grouped_by_class_insignt = () => api.get("student/students/per_class/");
 
@@ -134,6 +129,7 @@ export const delete_student = (id) => api.delete(`student/students/${id}/`);
 // student fee records APIs//////////////////////// HERE /
 
 export const get_raw_student_fee_records = () => api.get("fees/raw-student-fee-records");
+export const get_student_payment_list = (id) => api.get(`fees/student-payment-records/${id}/`);
 export const get_student_fee_record = (params) => api.get("fees/student-fee-records", { params });
 export const get_expected_fees_insight = () => api.get("fees/student-fee-records/expected_fees/");
 export const get_collected_vs_pending_insight = () => api.get("fees/student-fee-records/collection_summary/");
