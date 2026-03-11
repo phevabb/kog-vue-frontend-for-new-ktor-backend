@@ -156,7 +156,8 @@
             {{ rec.student?.user?.full_name }} /
             {{ rec.fee_structure?.grade_class?.name }} /
             {{ rec.fee_structure?.term?.name }} /
-            {{ rec.fee_structure?.academic_year?.name }}
+            {{ rec.fee_structure?.academic_year?.name }} /
+            {{ rec.balance }}
           </button>
         </div>
       </div>
@@ -349,6 +350,7 @@ function toggleSelectAll() {
 async function loadStudentFeeRecords() {
   try {
     const res = await get_raw_student_fee_records()
+
     studentFeeRecords.value = res.data || []
   } catch (err) {
     toast.error('Failed to load student fee records.')
@@ -414,19 +416,21 @@ function filterRecords() {
   }
 
   filteredStudentFeeRecords.value = studentFeeRecords.value
+
     .filter(r => {
       const name  = r.student?.user?.full_name?.toLowerCase() || ''
       const cls   = r.fee_structure?.grade_class?.name?.toLowerCase() || ''
       const term  = r.fee_structure?.term?.name?.toLowerCase() || ''
       const year  = r.fee_structure?.academic_year?.name?.toLowerCase() || ''
-      return name.includes(q) || cls.includes(q) || term.includes(q) || year.includes(q)
+      const balance = r.balance
+      return name.includes(q) || cls.includes(q) || term.includes(q) || year.includes(q) || balance.includes(q)
     })
     .slice(0, 15) // limit dropdown results
 }
 
 function selectRecord(record) {
   formPayment.studentFeeRecordId = record.id
-  recordSearch.value = `${record.student?.user?.full_name || '?'} / ${record.fee_structure?.grade_class?.name || '?'} / ${record.fee_structure?.term?.name || '?'} / ${record.fee_structure?.academic_year?.name || '?'}`
+  recordSearch.value = `${record.student?.user?.full_name || '?'} / ${record.fee_structure?.grade_class?.name || '?'} / ${record.fee_structure?.term?.name || '?'} / ${record.fee_structure?.academic_year?.name || '?'} / ${record.balance || '?'} `
   filteredStudentFeeRecords.value = []
 }
 

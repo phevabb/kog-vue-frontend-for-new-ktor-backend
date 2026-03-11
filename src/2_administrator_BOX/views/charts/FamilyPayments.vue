@@ -329,7 +329,7 @@ function isWithinRange(dateStr, start, end) {
 const feeRecordOptions = computed(() =>
   familyFeeRecords.value.map(r => ({
     value: r.id,
-    label: `${r.family?.name || '—'} - ${r.term?.name || '—'} - ${r.academic_year?.name || '—'}`
+    label: `${r.family_name || '—'} - ${r.term_name || '—'} - ${r.academic_year_name || '—'} - ${r.balance || '—'}`
   }))
 )
 
@@ -337,6 +337,7 @@ async function loadFamilyFeeRecords() {
   try {
     isLoadingRecords.value = true
     const res = await get_raw_family_fee_rec()
+
     familyFeeRecords.value = res.data || []
   } catch {
     toast.error('Failed to load family fee records for selection')
