@@ -4,6 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { adminRoutes } from '@/2_administrator_BOX/routes'
 import { principalRoutes } from '@/1_principal_BOX/routes'
 import { studentRoutes } from '@/3_student_BOX/routes'
+import { staffRoutes } from '@/4_staff_BOX/routes'
 const ResetPassword = () => import('@/registration/ResetPassword.vue')
 const ResetPasswordDone = () => import('@/registration/ResetPasswordDone.vue')
 const ResetPasswordConfirm = () => import('@/registration/ResetPasswordConfirm.vue')
@@ -36,6 +37,8 @@ function roleHome(user) {
   if (!user) return { name: 'Login' }
   if (user.role === 'administrator') return { name: 'student_fee_records_admin'}
   if (user.role === 'principal') return { name: 'PrincipalDashboard' }
+  if (user.role === 'student') return { name: 'StudentDashboard' }
+  if (user.role === 'staff') return { name: 'StaffDashboard' }
   return { name: 'Login' } // fallback
 }
 
@@ -47,6 +50,7 @@ const routes = [
   adminRoutes,
   principalRoutes,
   studentRoutes,
+  staffRoutes,
 
   // Optional generic landing that decides based on role
   {

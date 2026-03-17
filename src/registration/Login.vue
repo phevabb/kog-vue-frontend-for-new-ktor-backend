@@ -52,6 +52,7 @@
                       <option value="administrator">Administrator</option>
                       <option value="principal">Principal</option>
                       <option value="student">Parent</option>
+                      <option value="staff">Teacher</option>
                       <!-- Add more if applicable -->
                       <!-- <option value="manager">Manager</option>
                       <option value="staff">Staff</option> -->
@@ -153,6 +154,10 @@ function nextTarget() {
 
   if (user && user.role === 'student') {
     return { name: 'StudentDashboard' }
+  }
+
+  if (user && user.role === 'staff') {
+    return { name: 'StaffDashboard' }
   }
 
   // 4) Fallback

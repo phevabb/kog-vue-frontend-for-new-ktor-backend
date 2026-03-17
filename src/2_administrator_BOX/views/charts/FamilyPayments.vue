@@ -401,10 +401,10 @@ async function loadAllPayments() {
   errorMessage.value = ''
 
   try {
-    console.log("print tried")
+
     // First page
     const first = await get_family_payments({ page: 1, page_size: API_PAGE_SIZE })
-    console.log("first: print", first)
+
     const firstData = first.data || {}
     const firstResults = firstData.results || []
     const count = Number(firstData.count || firstResults.length)
@@ -421,7 +421,7 @@ async function loadAllPayments() {
     ensureValidPage()
     selectedIds.value = [] // reset selections when dataset changes
   } catch (err) {
-    console.log("err is print", err)
+
     errorMessage.value = err?.response?.data?.detail || 'Failed to load payments'
     toast.error(err)
   } finally {
