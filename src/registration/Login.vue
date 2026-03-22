@@ -114,10 +114,11 @@ const role = ref('')          // <--- new
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-function storeAuth(token: string, user: any, family: any) {
+function storeAuth(token: string, user: any, family: any, staff: any) {
   localStorage.setItem('token', token)
   localStorage.setItem('user', JSON.stringify(user))
   localStorage.setItem('family', JSON.stringify(family))
+  localStorage.setItem('staff', JSON.stringify(staff))
 
 }
 
@@ -179,7 +180,7 @@ async function onSubmit() {
     if (!token) throw new Error('No token received from server')
 
     // Persist server-authoritative user + token
-    storeAuth(token, data.user, data.family)
+    storeAuth(token, data.user, data.family, data.staff,)
 
     // Decide where to go
     const target = nextTarget()

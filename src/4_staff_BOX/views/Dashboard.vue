@@ -28,30 +28,47 @@
     </v-card>
 
     <v-row>
-      <!-- LEFT: Context & Filters -->
+      <!-- LEFT: Context & Subject/Search -->
       <v-col cols="12" md="4">
         <v-card class="pa-4 mb-4 premium-card" elevation="6">
           <div class="text-subtitle-1 font-weight-bold mb-2">Context</div>
+
+          <v-progress-linear v-if="booting" indeterminate color="primary" class="mb-3" />
+
           <v-row dense>
             <v-col cols="12">
-              <v-select v-model="ctx.year" :items="SIM_DATA.academicYears" label="Academic Year"
-                        variant="solo-filled" density="comfortable" />
+              <v-chip color="primary" text-color="white" class="mr-1 mb-1" size="small">
+                Year: {{ ctx.year || '—' }}
+              </v-chip>
+              <v-chip color="primary" text-color="white" class="mr-1 mb-1" size="small">
+                Term: {{ ctx.term || '—' }}
+              </v-chip>
+              <v-chip color="primary" text-color="white" class="mr-1 mb-1" size="small">
+                Class: {{ ctx.gradeclassName || ctx.gradeclassId || '—' }}
+              </v-chip>
             </v-col>
-            <v-col cols="12" sm="6">
-              <v-select v-model="ctx.term" :items="SIM_DATA.terms" label="Term"
-                        variant="solo-filled" density="comfortable" />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-select v-model="ctx.gradeclassId" :items="SIM_DATA.gradeClasses" item-title="name" item-value="id"
-                        label="Class" variant="solo-filled" density="comfortable" />
-            </v-col>
+
             <v-col cols="12">
-              <v-select v-model="subject" :items="SUBJECTS" label="Subject (Django key)"
-                        variant="solo-filled" density="comfortable" />
+              <v-select
+                v-model="subject"
+                :items="SUBJECTS"
+                label="Subject"
+                variant="solo-filled"
+                density="comfortable"
+                :disabled="booting"
+              />
             </v-col>
+
             <v-col cols="12">
-              <v-text-field v-model="search" label="Search student or index" prepend-inner-icon="mdi-magnify"
-                            variant="solo-filled" density="comfortable" clearable />
+              <v-text-field
+                v-model="search"
+                label="Search student or index"
+                prepend-inner-icon="mdi-magnify"
+                variant="solo-filled"
+                density="comfortable"
+                clearable
+                :disabled="booting"
+              />
             </v-col>
           </v-row>
 
@@ -59,7 +76,7 @@
 
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="text-subtitle-2 font-weight-bold">Scoring Scheme ({{ subjectLabel(subject) }})</div>
-            <v-btn size="small" variant="tonal" color="primary" @click="schemeDialog = true">
+            <v-btn size="small" variant="tonal" color="primary" @click="schemeDialog = true" :disabled="booting || published">
               <v-icon start>mdi-pencil</v-icon>Edit
             </v-btn>
           </div>
@@ -147,7 +164,7 @@
         <!-- Context bar -->
         <v-alert type="info" variant="tonal" border="start" class="mb-4">
           <strong>Context:</strong>
-          {{ ctx.year }} • {{ ctx.term }} • {{ currentClass?.name || '—' }} •
+          {{ ctx.year }} • {{ ctx.term }} • {{ ctx.gradeclassName || ctx.gradeclassId || '—' }} •
           <strong>{{ subjectLabel(subject) }}</strong>
         </v-alert>
 
@@ -158,16 +175,19 @@
               Marks Entry — {{ subjectLabel(subject) }}
             </div>
             <div class="d-flex flex-wrap align-center">
-              <v-btn class="mr-2 mb-2" size="small" variant="tonal" color="secondary" @click="fillBlanks(subject, 20, 40)" :disabled="published">
+              <v-btn class="mr-2 mb-2" size="small" variant="tonal" color="secondary"
+                     @click="fillBlanks(subject, 20, 40)" :disabled="published || booting">
                 <v-icon start>mdi-auto-fix</v-icon>Fill Blanks
               </v-btn>
-              <v-btn class="mr-2 mb-2" size="small" variant="tonal" color="error" @click="clearSubject(subject)" :disabled="published">
+              <v-btn class="mr-2 mb-2" size="small" variant="tonal" color="error"
+                     @click="clearSubject(subject)" :disabled="published || booting">
                 <v-icon start>mdi-broom</v-icon>Clear Subject
               </v-btn>
-              <v-btn class="mr-2 mb-2" size="small" variant="tonal" color="primary" @click="importDialog = true" :disabled="published">
+              <v-btn class="mr-2 mb-2" size="small" variant="tonal" color="primary"
+                     @click="importDialog = true" :disabled="published || booting">
                 <v-icon start>mdi-tray-arrow-down</v-icon>Import CSV
               </v-btn>
-              <v-btn class="mb-2" size="small" variant="tonal" color="primary" @click="exportCSV">
+              <v-btn class="mb-2" size="small" variant="tonal" color="primary" @click="exportCSV" :disabled="booting">
                 <v-icon start>mdi-tray-arrow-up</v-icon>Export CSV
               </v-btn>
             </div>
@@ -209,7 +229,7 @@
                     variant="plain" density="compact" type="number"
                     :min="0" :max="scheme[subject].classMax" :step="1" hide-details
                     :class="scoreClass(rec(stu.id)[`${subject}_class_score`], 0, scheme[subject].classMax)"
-                    @change="recalc(stu.id, subject)" @blur="autoSaveDraft" :disabled="published"
+                    @change="recalc(stu.id, subject)" @blur="autoSaveDraft" :disabled="published || booting"
                   />
                 </td>
                 <td>
@@ -218,7 +238,7 @@
                     variant="plain" density="compact" type="number"
                     :min="0" :max="scheme[subject].examMax" :step="1" hide-details
                     :class="scoreClass(rec(stu.id)[`${subject}_exam_score`], 0, scheme[subject].examMax)"
-                    @change="recalc(stu.id, subject)" @blur="autoSaveDraft" :disabled="published"
+                    @change="recalc(stu.id, subject)" @blur="autoSaveDraft" :disabled="published || booting"
                   />
                 </td>
 
@@ -247,27 +267,8 @@
 
           <v-divider />
 
-          <!-- Attendance & Remarks quick form -->
-          <div class="pa-4">
-            <div class="text-subtitle-2 font-weight-bold mb-2">Class Meta</div>
-            <v-row dense>
-              <v-col cols="6" sm="3">
-                <v-text-field v-model.number="classMeta.attendance" type="number" label="Attendance" density="comfortable" />
-              </v-col>
-              <v-col cols="6" sm="3">
-                <v-text-field v-model.number="classMeta.number_on_roll" type="number" label="Number on Roll" density="comfortable" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="classMeta.next_term_begins" label="Next Term Begins" density="comfortable" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="classMeta.teacher_remarks" label="Teacher Remarks" density="comfortable" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="classMeta.head_teacher_remarks" label="Head Teacher Remarks" density="comfortable" />
-              </v-col>
-            </v-row>
-          </div>
+          <!-- Class Meta -->
+
 
           <!-- Footer actions -->
           <div class="pa-4 d-flex flex-wrap justify-space-between align-center">
@@ -276,24 +277,24 @@
               Class {{ scheme[subject].classMax }} + Exam {{ scheme[subject].examMax }} = 100. Grading: A≥85, B≥70, C≥50, D≥30, else E.
             </div>
             <div class="d-flex">
-              <v-btn class="mr-2" variant="tonal" color="secondary" @click="saveDraft" :loading="saving" :disabled="published">
+              <v-btn class="mr-2" variant="tonal" color="secondary" @click="saveDraft" :loading="saving" :disabled="published || booting">
                 <v-icon start>mdi-content-save-outline</v-icon>Save Draft
               </v-btn>
-              <v-btn class="mr-2" variant="tonal" color="primary" @click="rankAndPreview" :disabled="published">
+              <v-btn class="mr-2" variant="tonal" color="primary" @click="rankAndPreview" :disabled="published || booting">
                 <v-icon start>mdi-numeric</v-icon>Compute Positions
               </v-btn>
-              <v-btn color="success" @click="publishDialog = true" :disabled="published || completionRate < 60">
+              <v-btn color="success" @click="publishDialog = true" :disabled="published || completionRate < 60 || booting">
                 <v-icon start>mdi-check-decagram</v-icon>Publish
               </v-btn>
             </div>
           </div>
         </v-card>
 
-        <!-- JSON Preview (payload shaped for your Django view/serializer) -->
+        <!-- JSON Preview -->
         <v-card class="pa-4 mt-4 premium-card" elevation="6">
           <div class="d-flex align-center justify-space-between">
             <div class="text-subtitle-1 font-weight-bold">Payload Preview (per student)</div>
-            <v-btn size="small" color="primary" variant="tonal" @click="saveToServer" :disabled="published">
+            <v-btn size="small" color="primary" variant="tonal" @click="saveToServer" :disabled="published || booting">
               <v-icon start>mdi-cloud-upload</v-icon>Submit (stub)
             </v-btn>
           </div>
@@ -346,7 +347,7 @@
           <ul class="mt-2">
             <li>{{ completedCount }}/{{ filteredStudents.length }} students complete (for {{ subjectLabel(subject) }})</li>
             <li>Subject average: {{ subjectAverage.toFixed(1) }}</li>
-            <li>Year/Term: {{ ctx.year }} / {{ ctx.term }} • Class: {{ currentClass?.name }}</li>
+            <li>Year/Term: {{ ctx.year }} / {{ ctx.term }} • Class: {{ ctx.gradeclassName || ctx.gradeclassId }}</li>
           </ul>
         </v-card-text>
         <v-divider />
@@ -393,63 +394,26 @@ S-002, 28, 45"
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { get_terms_with_year, get_teacher_student } from '@/services/api'
 
 /* ---------------------------
-   SIMULATED DOMAIN CONSTANTS
+   CONSTANTS
 --------------------------- */
 const SUBJECTS = [
   'english', 'maths', 'science', 'rme', 'ict', 'history', 'fante', 'creativearts'
 ]
-
-const GRADE_TO_TEXT = {
-  A: 'Excellent',
-  B: 'Very Good',
-  C: 'Good',
-  D: 'Credit',
-  E: 'Pass',
-}
-
-/* ---------------------------
-   SIMULATED DATA (swap later)
---------------------------- */
-const SIM_DATA = {
-  academicYears: ['2024/2025', '2025/2026'],
-  terms: ['Term 1', 'Term 2', 'Term 3'],
-  gradeClasses: [
-    { id: 'C6', name: 'Class 6' },
-    { id: 'J1', name: 'JHS 1' },
-  ],
-  students: {
-    C6: [
-      { id: 1, indexNo: 'S-001', full_name: 'Ama Nyarko' },
-      { id: 2, indexNo: 'S-002', full_name: 'Kojo Mensah' },
-      { id: 3, indexNo: 'S-003', full_name: 'Yaw Aidoo' },
-      { id: 4, indexNo: 'S-004', full_name: 'Akua Asante' },
-      { id: 5, indexNo: 'S-005', full_name: 'Kofi Boateng' },
-    ],
-    J1: [
-      { id: 11, indexNo: 'J1-001', full_name: 'Selorm Agbo' },
-      { id: 12, indexNo: 'J1-002', full_name: 'Abena Darko' },
-      { id: 13, indexNo: 'J1-003', full_name: 'Gideon Opoku' },
-    ],
-  },
-}
+const GRADE_TO_TEXT = { A: 'Excellent', B: 'Very Good', C: 'Good', D: 'Credit', E: 'Pass' }
 
 /* ---------------------------
    STATE
 --------------------------- */
-const ctx = reactive({
-  year: SIM_DATA.academicYears[0],
-  term: SIM_DATA.terms[0],
-  gradeclassId: 'C6',
-})
+const ctx = reactive({ year: '', yearId: null, term: '', termId: null, gradeclassId: '', gradeclassName: '' })
 const subject = ref('english')
 const search = ref('')
+const staff = ref(null)
 const selectedStudentId = ref(null)
 
-const scheme = reactive(Object.fromEntries(
-  SUBJECTS.map(s => [s, { classMax: 40, examMax: 60 }])
-))
+const scheme = reactive(Object.fromEntries(SUBJECTS.map(s => [s, { classMax: 40, examMax: 60 }])))
 const schemeWorking = ref({ classMax: 40, examMax: 60 })
 const schemeDialog = ref(false)
 
@@ -457,39 +421,31 @@ const published = ref(false)
 const autoSave = ref(true)
 const saving = ref(false)
 
-const records = reactive({})    // { [studentId]: AcademicRecords-like object }
-const classMeta = reactive({
-  attendance: 0, number_on_roll: 0,
-  teacher_remarks: '', head_teacher_remarks: '', next_term_begins: '',
-})
+const records = reactive({})  // { [studentId]: ... }
+const classMeta = reactive({ attendance: 0, number_on_roll: 0, teacher_remarks: '', head_teacher_remarks: '', next_term_begins: '' })
 const snack = reactive({ show: false, text: '', color: 'success' })
 
 const publishDialog = ref(false)
 const importDialog = ref(false)
 const csvText = ref('')
 
+const booting = ref(false)
+const studentsFromApi = ref([])
+
 /* ---------------------------
    COMPUTEDS
 --------------------------- */
-const currentClass = computed(() => SIM_DATA.gradeClasses.find(c => c.id === ctx.gradeclassId))
-const students = computed(() => SIM_DATA.students[ctx.gradeclassId] || [])
+const students = computed(() => studentsFromApi.value || [])
 
 const filteredStudents = computed(() => {
   const list = students.value
   if (!search.value) return list
-  const q = search.value.toLowerCase()
-  return list.filter(s =>
-    s.full_name.toLowerCase().includes(q) || s.indexNo.toLowerCase().includes(q))
+  const q = (search.value || '').toLowerCase()
+  return list.filter(s => (s.full_name || '').toLowerCase().includes(q) || (s.indexNo || '').toLowerCase().includes(q))
 })
 
-const completedCount = computed(() =>
-  filteredStudents.value.filter(s => isComplete(s.id, subject.value)).length
-)
-const completionRate = computed(() =>
-  filteredStudents.value.length
-    ? Math.round((completedCount.value / filteredStudents.value.length) * 100)
-    : 0
-)
+const completedCount = computed(() => filteredStudents.value.filter(s => isComplete(s.id, subject.value)).length)
+const completionRate = computed(() => filteredStudents.value.length ? Math.round((completedCount.value / filteredStudents.value.length) * 100) : 0)
 
 const subjectAverage = computed(() => {
   const vals = filteredStudents.value
@@ -519,7 +475,6 @@ const subjectMin = computed(() => {
   return worst
 })
 
-/* preview payload for the first student */
 const samplePayload = computed(() => {
   const st = filteredStudents.value[0]
   return st ? buildPayload(st.id) : {}
@@ -529,10 +484,7 @@ const samplePayload = computed(() => {
    HELPERS
 --------------------------- */
 function subjectLabel(key) {
-  const map = {
-    english: 'English', maths: 'Maths', science: 'Science', rme: 'RME',
-    ict: 'ICT', history: 'History', fante: 'Fante', creativearts: 'Creative Arts',
-  }
+  const map = { english: 'English', maths: 'Maths', science: 'Science', rme: 'RME', ict: 'ICT', history: 'History', fante: 'Fante', creativearts: 'Creative Arts' }
   return map[key] || key
 }
 function initials(name = '') {
@@ -541,16 +493,13 @@ function initials(name = '') {
 function rec(studentId) {
   records[studentId] ||= {
     student: studentId,
-    term: ctx.term,
-    academic_year: ctx.year,
-    gradeclass: currentClass.value?.id,
+    term: ctx.termId ?? ctx.term,
+    academic_year: ctx.yearId ?? ctx.year,
+    gradeclass: ctx.gradeclassId,
     promoted_to: null,
-
     attendance: 0, number_on_roll: 0,
     attitude: '', interest: '', teacher_remarks: '', head_teacher_remarks: '',
     next_term_begins: '', position: '', conduct: '', interpretation: '',
-
-    // initialize all subject fields as null
     ...Object.fromEntries(SUBJECTS.flatMap(s => ([
       [`${s}_class_score`, null],
       [`${s}_exam_score`, null],
@@ -593,13 +542,10 @@ function isComplete(studentId, subj) {
   const e = r[`${subj}_exam_score`]
   return c !== null && e !== null && isValidRange(c, 0, scheme[subj].classMax) && isValidRange(e, 0, scheme[subj].examMax)
 }
-
-/* recompute totals/grade/interpretation exactly like your Django save() */
 function recalc(studentId, subj) {
   const r = rec(studentId)
   const c = Number(r[`${subj}_class_score`] || 0)
   const e = Number(r[`${subj}_exam_score`] || 0)
-
   if ((r[`${subj}_class_score`] ?? null) === null && (r[`${subj}_exam_score`] ?? null) === null) {
     r[`${subj}_total_score`] = null
     r[`${subj}_grade`] = null
@@ -612,7 +558,6 @@ function recalc(studentId, subj) {
   r[`${subj}_grade`] = g
   r[`${subj}_interpretation`] = GRADE_TO_TEXT[g]
 }
-
 function clearSubject(subj) {
   filteredStudents.value.forEach(s => {
     const r = rec(s.id)
@@ -625,7 +570,6 @@ function clearSubject(subj) {
   toast('Cleared scores for subject', 'warning')
   autoSaveDraft()
 }
-
 function fillBlanks(subj, classDefault = 20, examDefault = 40) {
   const clsMax = scheme[subj].classMax
   const exmMax = scheme[subj].examMax
@@ -638,8 +582,6 @@ function fillBlanks(subj, classDefault = 20, examDefault = 40) {
   toast('Filled blanks', 'success')
   autoSaveDraft()
 }
-
-/* Ranking overall: use average of available subject totals; write to r.position (e.g., "1/30") */
 function rankAndPreview() {
   const list = filteredStudents.value.map(s => {
     const r = rec(s.id)
@@ -649,9 +591,7 @@ function rankAndPreview() {
   })
   const sorted = [...list].sort((a, b) => b.avg - a.avg)
   const N = filteredStudents.value.length || 0
-  sorted.forEach((row, idx) => {
-    rec(row.id).position = `${idx + 1}/${N}`
-  })
+  sorted.forEach((row, idx) => { rec(row.id).position = `${idx + 1}/${N}` })
   toast('Positions computed', 'success')
   autoSaveDraft()
 }
@@ -662,14 +602,9 @@ function rankAndPreview() {
 const LS_KEY = 'acad_records_demo_v1'
 function saveDraft() {
   saving.value = true
-  const payload = {
-    ctx, records, scheme, classMeta, published: published.value,
-  }
+  const payload = { ctx, records, scheme, classMeta, published: published.value }
   localStorage.setItem(LS_KEY, JSON.stringify(payload))
-  setTimeout(() => {
-    saving.value = false
-    toast('Draft saved', 'success')
-  }, 300)
+  setTimeout(() => { saving.value = false; toast('Draft saved', 'success') }, 300)
 }
 function autoSaveDraft() { if (autoSave.value && !published.value) saveDraft() }
 function restoreDraft() {
@@ -677,19 +612,10 @@ function restoreDraft() {
   if (!raw) return
   try {
     const parsed = JSON.parse(raw)
-    Object.assign(ctx, parsed.ctx || {})
     Object.assign(classMeta, parsed.classMeta || {})
     published.value = !!parsed.published
-    // scheme
-    if (parsed.scheme) {
-      for (const s of SUBJECTS) {
-        if (parsed.scheme[s]) scheme[s] = parsed.scheme[s]
-      }
-    }
-    // records (reactive)
-    for (const k of Object.keys(parsed.records || {})) {
-      records[k] = parsed.records[k]
-    }
+    if (parsed.scheme) for (const s of SUBJECTS) { if (parsed.scheme[s]) scheme[s] = parsed.scheme[s] }
+    for (const k of Object.keys(parsed.records || {})) { records[k] = parsed.records[k] }
   } catch {}
 }
 
@@ -733,7 +659,7 @@ function applyCSVImport() {
   const expected = ['indexNo', 'class', 'exam']
   const ok = headers.length >= expected.length && expected.every((h, i) => headers[i].toLowerCase() === h.toLowerCase())
   if (!ok) { toast('CSV headers mismatch', 'error'); return }
-  const map = Object.fromEntries(filteredStudents.value.map(s => [s.indexNo.toLowerCase(), s]))
+  const map = Object.fromEntries(filteredStudents.value.map(s => [String(s.indexNo || '').toLowerCase(), s]))
   let applied = 0
   for (const row of rows) {
     const idNo = (row[0] || '').toLowerCase()
@@ -756,9 +682,7 @@ function applyCSVImport() {
 /* ---------------------------
    SCHEME DIALOG
 --------------------------- */
-watch(subject, () => {
-  schemeWorking.value = { ...scheme[subject.value] }
-})
+watch(subject, () => { schemeWorking.value = { ...scheme[subject.value] } })
 function saveScheme() {
   scheme[subject.value] = { ...schemeWorking.value }
   schemeDialog.value = false
@@ -767,17 +691,16 @@ function saveScheme() {
 }
 
 /* ---------------------------
-   BACKEND PAYLOAD BUILDER
+   PAYLOAD
 --------------------------- */
 function buildPayload(studentId) {
   const r = rec(studentId)
   return {
     student: studentId,
-    term: ctx.term,               // usually a numeric ID — replace when wiring API
-    academic_year: ctx.year,      // usually a numeric ID — replace when wiring API
-    gradeclass: ctx.gradeclassId, // usually a numeric ID/name matching your GradeClass
+    term: ctx.termId ?? ctx.term,
+    academic_year: ctx.yearId ?? ctx.year,
+    gradeclass: ctx.gradeclassId,
     promoted_to: r.promoted_to,
-
     attendance: classMeta.attendance,
     number_on_roll: classMeta.number_on_roll,
     attitude: r.attitude,
@@ -788,8 +711,6 @@ function buildPayload(studentId) {
     position: r.position,
     conduct: r.conduct,
     interpretation: r.interpretation,
-
-    // subjects — exactly your field names:
     ...Object.fromEntries(SUBJECTS.flatMap(s => ([
       [`${s}_class_score`, r[`${s}_class_score`]],
       [`${s}_exam_score`, r[`${s}_exam_score`]],
@@ -799,36 +720,32 @@ function buildPayload(studentId) {
     ]))),
   }
 }
-
-/* Submit stub */
 async function saveToServer() {
-  // Replace with your API call (axios/fetch) to POST/PUT each student's record.
-  // Example: await api.upsertAcademicRecord(buildPayload(studentId))
-
   const rows = filteredStudents.value.map(s => buildPayload(s.id))
 
   toast('Payloads logged to console (stub). Replace with real API.', 'info')
 }
 
 /* ---------------------------
-   LIFECYCLE & SEED
+   API BOOT + STUDENTS LOAD
 --------------------------- */
-function toast(text, color = 'success') {
-  snack.text = text; snack.color = color; snack.show = true
+function normalizeStudent(raw = {}) {
+  return {
+    id: raw.id,
+    indexNo: String(raw.indexNo ?? raw.indexno ?? raw.index_no ?? ''),
+    full_name: raw.full_name ?? `${raw.first_name ?? ''} ${raw.last_name ?? ''}`.trim(),
+  }
 }
-onMounted(() => {
-  // set number_on_roll from class list count
+function initStudentsState() {
   classMeta.number_on_roll = students.value.length
-
-  // initialize empty records
   students.value.forEach(s => rec(s.id))
-
-  // Seed some demo scores that respect the scheme
+  // optional demo seed; remove in prod if not needed
   const subj = subject.value
+  const list = students.value
   const seed = [
-    { id: students.value[0]?.id, c: 28, e: 52 },
-    { id: students.value[1]?.id, c: 30, e: 40 },
-    { id: students.value[2]?.id, c: 18, e: 45 },
+    { id: list[0]?.id, c: 28, e: 52 },
+    { id: list[1]?.id, c: 30, e: 40 },
+    { id: list[2]?.id, c: 18, e: 45 },
   ].filter(Boolean)
   seed.forEach(row => {
     const r = rec(row.id)
@@ -836,24 +753,65 @@ onMounted(() => {
     r[`${subj}_exam_score`] = row.e
     recalc(row.id, subj)
   })
+}
+function pruneStaleRecords() {
+  const valid = new Set(students.value.map(s => String(s.id)))
+  for (const k of Object.keys(records)) { if (!valid.has(String(k))) delete records[k] }
+}
 
-  restoreDraft()
+async function hydrateCtxFromApi() {
+  // staff from localStorage for read-only display
+  const staffString = localStorage.getItem('staff')
+  if (staffString) {
+    staff.value = JSON.parse(staffString)
+    ctx.gradeclassId   = staff.value.assigned_class_id ?? staff.value.assigned_class ?? ''
+    ctx.gradeclassName = staff.value.assigned_class_name ?? staff.value.assigned_class ?? ''
+  }
+  // term + year
+  const trm = await get_terms_with_year()
+  const t = trm?.data ?? trm
+  ctx.termId = t?.id ?? null
+  ctx.term   = t?.name ?? ''
+  ctx.year   = t?.academic_year ?? ''
+  ctx.yearId = t?.academic_year_id ?? null
+}
+async function loadTeacherStudents() {
+  const ans = await get_teacher_student()
+  const list = Array.isArray(ans?.data) ? ans.data : (Array.isArray(ans) ? ans : [])
+  studentsFromApi.value = list.map(normalizeStudent)
+}
+
+/* ---------------------------
+   LIFECYCLE
+--------------------------- */
+function toast(text, color = 'success') { snack.text = text; snack.color = color; snack.show = true }
+function confirmPublish() { published.value = true; publishDialog.value = false; toast('Published', 'success') }
+function selectStudent(id) { selectedStudentId.value = id }
+
+onMounted(async () => {
+  booting.value = true
+  try {
+    await hydrateCtxFromApi()
+    await loadTeacherStudents()
+    initStudentsState()
+    pruneStaleRecords()
+    restoreDraft()
+  } catch (e) {
+
+    toast('Could not load students', 'error')
+  } finally {
+    booting.value = false
+  }
 })
 
-function selectStudent(id) { selectedStudentId.value = id }
+// keep state in sync if students list refreshes again later
+watch(studentsFromApi, () => { initStudentsState(); pruneStaleRecords() })
 </script>
 
 <style scoped>
 /* Premium theming similar to enterprise dashboards */
-.premium-bg {
-  background: linear-gradient(135deg, #0d1321 0%, #1d2d44 40%, #3e5c76 100%);
-  min-height: 100vh;
-}
-.premium-hero {
-  background: linear-gradient(135deg, rgba(103,58,183,0.82) 0%, rgba(33,150,243,0.82) 100%);
-  border: 1px solid rgba(255,255,255,0.12);
-  backdrop-filter: blur(4px);
-}
+.premium-bg { background: linear-gradient(135deg, #0d1321 0%, #1d2d44 40%, #3e5c76 100%); min-height: 100vh; }
+.premium-hero { background: linear-gradient(135deg, rgba(103,58,183,0.82) 0%, rgba(33,150,243,0.82) 100%); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(4px); }
 .premium-avatar { border: 2px solid rgba(255,255,255,0.6); }
 .premium-card { border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.96); }
 
@@ -868,10 +826,7 @@ function selectStudent(id) { selectedStudentId.value = id }
 .score-error input { color: #d32f2f !important; font-weight: 600; }
 .score-ok input { color: #1b5e20 !important; font-weight: 600; }
 
-.payload-pre {
-  background: #0d1321; color: #e3f2fd; padding: 12px; border-radius: 12px; font-size: 12px;
-  max-height: 320px; overflow: auto;
-}
+.payload-pre { background: #0d1321; color: #e3f2fd; padding: 12px; border-radius: 12px; font-size: 12px; max-height: 320px; overflow: auto; }
 .opacity-80 { opacity: 0.8; }
 .text-no-wrap { white-space: nowrap; }
 </style>

@@ -8,10 +8,10 @@ import axios from 'axios'
 
 
 const api = axios.create({
- // baseURL: 'http://127.0.0.1:8000/api/',
+//  baseURL: 'http://127.0.0.1:8000/api/',
 
 
-    baseURL: 'https://feessystem-aidooemmanuelkwame1416-zluuv6f0.leapcell.dev/api/',
+     baseURL: 'https://feessystem-aidooemmanuelkwame1416-zluuv6f0.leapcell.dev/api/',
 
 
   headers: {
@@ -76,6 +76,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       localStorage.removeItem('family')
+      localStorage.removeItem('staff')
       // Optionally: window.location.hash = '#/login'
     }
     return Promise.reject(error)
@@ -139,6 +140,11 @@ export const get_family_payment_list_regular = (id) => api.get(`family-fees/fami
 
 
 
+// term APIs
+
+
+export const get_terms_with_year = () => api.get("student/current-term");
+
 
 // student fee records APIs//////////////////////// HERE /
 
@@ -184,6 +190,9 @@ export const num_of_staff_insight = () => api.get("staff/staff-profiles/total_te
 export const create_staff = (payload) => api.post("staff/staff-profiles/", payload);
 export const update_staff = (id, payload) => api.patch(`staff/staff-profiles/${id}/`, payload);
 export const delete_staff = (id) => api.delete(`staff/staff-profiles/${id}/`);
+export const get_teacher_student = () => api.get("staff/teacher/students/");
+
+
 // academic year APIs
 export const get_academic_years = () => api.get("student/academic-years");
 export const create_academic_year = (payload) => api.post("student/academic-years/", payload);

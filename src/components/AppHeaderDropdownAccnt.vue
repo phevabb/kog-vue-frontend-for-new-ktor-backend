@@ -12,6 +12,7 @@ const handleLogout = async () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('family')
+    localStorage.removeItem('staff')
     router.push('/login')
   } catch (error) {
 
