@@ -38,5 +38,31 @@ export const studentRoutes = {
       meta: { roles: ['student'] },
     },
 
+    {
+      path: 'performance',
+      name: 'PerformanceAnalysis',
+      component: () =>
+        import('@/3_student_BOX/views/PerformanceAnalysis.vue'),
+      meta: { roles: ['student'] },
+    },
+
+    {
+      path: 'bills',
+      name: 'Bills',
+      component: () =>
+        import('@/3_student_BOX/views/Bills.vue'),
+      meta: { roles: ['student'] },
+    },
+    {
+      path: 'booklist',
+      name: 'Booklist',
+      component: () =>
+        import('@/3_student_BOX/views/Booklist.vue'),
+      meta: { roles: ['student'] },
+    },
+
+
+
+
   ],
 }

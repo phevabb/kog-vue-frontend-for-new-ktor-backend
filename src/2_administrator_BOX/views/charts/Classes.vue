@@ -139,6 +139,7 @@ async function fetchClasses() {
   try {
     const response = await get_classes();
 
+
     const response_for_staff = await get_staff();
 
 
@@ -175,43 +176,20 @@ const gradeClasses = ref([])
 
 const classOptions = [
   'Creche',
-
-  'Nursery 1A',
-  'Nursery 1B',
-
-  'Nursery 2A',
-  'Nursery 2B',
-
-  'KG 1A',
-  'KG 1B',
-
-  'KG 2A',
-  'KG 2B',
-
-  'Basic 1A',
-  'Basic 1B',
-
-  'Basic 2A',
-  'Basic 2B',
-
-  'Basic 3A',
-  'Basic 3B',
-
-  'Basic 4A',
-  'Basic 4B',
-
-  'Basic 5A',
-  'Basic 5B',
-
-  'Basic 6A',
-  'Basic 6B',
-
-  'Basic 7A',
-  'Basic 7B',
-
-  'Basic 8',
-  'Basic 9',
-]
+  'Nursery 1',
+  'Nursery 2',
+  'KG 1',
+  'KG 2',
+  'class 1',
+  'class 2',
+  'class 3',
+  'class 4',
+  'class 5',
+  'class 6',
+  'jhs 1',
+  'jhs 2',
+  'jhs 3'
+  ]
 
 
 const searchTerm = ref('')
@@ -266,14 +244,21 @@ const submitForm = async () => {
 
     // ✅ Validate class name against allowed options
     const validClasses = [
-      'Creche',  'Nursery 1A',  'Nursery 1B',
-      'Nursery 2A',  'Nursery 2B',  'KG 1A',
-      'KG 1B',  'KG 2A', 'KG 2B',  'Basic 1A',
-      'Basic 1B',  'Basic 2A',  'Basic 2B', 'Basic 3A',
-      'Basic 3B',   'Basic 4A',   'Basic 4B',     'Basic 5A',
-      'Basic 5B',  'Basic 6A',   'Basic 6B','Basic 7A','Basic 7B',
-      'Basic 8',   'Basic 9',
-    ];
+  'Creche',
+  'Nursery 1',
+  'Nursery 2',
+  'KG 1',
+  'KG 2',
+  'class 1',
+  'class 2',
+  'class 3',
+  'class 4',
+  'class 5',
+  'class 6',
+  'jhs 1',
+  'jhs 2',
+  'jhs 3'
+  ];
     if (!validClasses.includes(form.value.name)) {
       toast.error('Invalid class name selected', { position: 'top-right' });
       loading.value = false;

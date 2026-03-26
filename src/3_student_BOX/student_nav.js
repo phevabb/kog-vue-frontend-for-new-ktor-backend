@@ -41,24 +41,24 @@ export default [
   },
   {
     component: 'CNavItem',
-    name: 'Academic Calendar',
-    to: { name: 'StudentDashboard' },
+    name: 'Performance Analysis',
+    to: { name: 'PerformanceAnalysis' },
     icon: cilCalculator,
   },
 
 
-  { component: 'CNavTitle', name: 'Performance Analysis' },
+  { component: 'CNavTitle', name: 'Bills / Book lists' },
 
   {
     component: 'CNavItem',
-    name: 'Staff Profiles',
-    to: { name: 'StudentDashboard' },
+    name: 'Bills',
+    to: { name: 'Bills' },
     icon: cilAddressBook,
   },
   {
     component: 'CNavItem',
-    name: 'Student Profiles',
-    to: { name: 'StudentDashboard' },
+    name: 'Book List',
+    to: { name: 'Booklist' },
     icon: 'cil-user',
   },
 
@@ -69,42 +69,12 @@ export default [
 
   // Deactivation Section
 
-  {
-    component: 'CNavTitle',
-    name: 'ANALYTICS',
-  },
-    {
-    component: 'CNavItem',
-    name: 'Performance Trend Analysis',
-    to: { name: 'StudentDashboard' },
-    icon: 'cil-chart-pie',
-  },
-    {
-      component: 'CNavItem',
-      name: 'Class Ranking',
-      to: { name: 'StudentDashboard' },
-      icon: 'cil-chart-pie',
-    },
 
 
 
 
 
-    // others section
-  { component: 'CNavTitle', name: 'COMMUNICATION' },
 
-  {
-    component: 'CNavItem',
-    name: 'Messages',
-    to: { name: 'StudentDashboard' },
-    icon: cilCalendar,
-  },
-  {
-    component: 'CNavItem',
-    name: 'Announcements',
-    to: { name: 'StudentDashboard' },
-    icon: cilSchool,
-  },
 
 
 ]

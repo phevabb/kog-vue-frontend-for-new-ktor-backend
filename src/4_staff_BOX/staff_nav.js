@@ -21,8 +21,8 @@ export default [
 
   {
     component: 'CNavItem',
-    name: 'Online Payment',
-    to: { name: 'StudentOnlinePayment' },
+    name: 'Class Analysis',
+    to: { name: 'ClassAnalysis' },
     icon: cilSpreadsheet,
   },
 
@@ -31,30 +31,10 @@ export default [
 
   {
     component: 'CNavItem',
-    name: 'Academic Calendar',
-    to: { name: 'StaffDashboard' },
+    name: 'Class Attendance',
+    to: { name: 'Attendance' },
     icon: cilCalculator,
   },
-
-
-  { component: 'CNavTitle', name: 'Performance Analysis' },
-
-  {
-    component: 'CNavItem',
-    name: 'Staff Profiles',
-    to: { name: 'StudentDashboard' },
-    icon: cilAddressBook,
-  },
-
-
-
-
-  // Deactivation Section
-
-
-
-
-
 
 
 

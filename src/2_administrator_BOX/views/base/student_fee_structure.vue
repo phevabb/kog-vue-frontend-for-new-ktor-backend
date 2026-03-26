@@ -413,6 +413,8 @@ async function loadReferenceData() {
     get_terms(),
   ]);
 
+
+
   academicYears.value = years?.data || [];
   gradeClasses.value = classes?.data || [];
   terms.value = t?.data || [];
@@ -636,6 +638,8 @@ async function submitForm() {
     discounted_student_ids: formFee.is_discount ? formFee.discounted_student_ids : [],
     is_discounted: formFee.is_discount,
   };
+
+
 
 
 

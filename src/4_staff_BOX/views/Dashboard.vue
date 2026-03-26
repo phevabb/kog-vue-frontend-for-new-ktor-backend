@@ -16,13 +16,10 @@
         </div>
 
         <div class="d-flex align-center mt-3 mt-sm-0">
-          <v-chip color="deep-purple" text-color="white" class="mr-2" size="small" prepend-icon="mdi-cloud-check-outline">
+          <v-chip color="white" text-color="white" class="mr-2" size="small" prepend-icon="mdi-cloud-check-outline">
             Auto‑save: {{ autoSave ? 'On' : 'Off' }}
           </v-chip>
-          <v-chip :color="published ? 'success' : 'warning'" text-color="white" size="small"
-                  :prepend-icon="published ? 'mdi-check-decagram' : 'mdi-progress-clock'">
-            {{ published ? 'Published' : 'Draft' }}
-          </v-chip>
+
         </div>
       </div>
     </v-card>
@@ -897,10 +894,10 @@ watch(studentsFromApi, () => { initStudentsState(); pruneStaleRecords() })
 
 <style scoped>
 /* Premium theming similar to enterprise dashboards */
-.premium-bg { background: linear-gradient(135deg, #0d1321 0%, #1d2d44 40%, #3e5c76 100%); min-height: 100vh; }
+.premium-bg { background: linear-gradient(135deg, #eaecf0 0%, #dae4f3 40%, #a0b4c6 100%); min-height: 100vh; }
 .premium-hero { background: linear-gradient(135deg, rgba(103,58,183,0.82) 0%, rgba(33,150,243,0.82) 100%); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(4px); }
 .premium-avatar { border: 2px solid rgba(255,255,255,0.6); }
-.premium-card { border-radius: 18px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.98); }
+.premium-card { border-radius: 18px; border: 1px solid rgba(232, 225, 225, 0.06); background: rgba(255,255,255,0.98); }
 
 /* KPI Cards */
 .kpi-card { border-radius: 14px; color: white; }
@@ -951,7 +948,7 @@ watch(studentsFromApi, () => { initStudentsState(); pruneStaleRecords() })
 /* Validity backgrounds (keep blue text) */
 .score-error input {
   background-color: #fff6f6;
-  box-shadow: inset 0 0 0 1px rgba(211,47,47,0.25);
+  box-shadow: inset 0 0 0 1px rgba(239, 225, 225, 0.25);
   border-radius: 6px;
 }
 .score-ok input {

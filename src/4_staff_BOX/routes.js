@@ -16,18 +16,18 @@ export const staffRoutes = {
       meta: { roles: ['staff'] },
     },
     {
-      path: 'paymenthistory',
-      name: 'StaffPaymentHistory',
+      path: 'classanalysis',
+      name: 'ClassAnalysis',
       component: () =>
-        import('@/4_staff_BOX/views/PaymentHistory.vue'),
+        import('@/4_staff_BOX/views/ClassAnalysis.vue'),
       meta: { roles: ['staff'] },
     },
 
     {
-      path: 'onlinepayment',
-      name: 'StaffOnlinePayment',
+      path: 'attendance',
+      name: 'Attendance',
       component: () =>
-        import('@/4_staff_BOX/views/PaymentOnline.vue'),
+        import('@/4_staff_BOX/views/Attendance.vue'),
       meta: { roles: ['staff'] },
     },
 
