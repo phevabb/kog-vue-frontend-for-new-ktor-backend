@@ -75,20 +75,24 @@
                   <CFormInput v-model="selectedRecord.conduct" />
                 </CCol>
 
-                <CCol md="4">
-                  <label class="form-label">Interest</label>
-                  <CFormInput v-model="selectedRecord.interest" />
-                </CCol>
 
                 <CCol md="4">
                   <label class="form-label">Attitude</label>
                   <CFormInput v-model="selectedRecord.attitude" />
                 </CCol>
+
+
+                <CCol md="4">
+                  <label class="form-label">Interest</label>
+                  <CFormInput v-model="selectedRecord.interest" />
+                </CCol>
+
+
               </CRow>
 
               <!-- Remarks -->
               <h6 class="fw-bold text-primary mt-4 mb-2">
-                Teacher Remarks
+               Class Teacher's Remarks
               </h6>
               <CFormTextarea
                 v-model="selectedRecord.teacher_remarks"
@@ -96,7 +100,7 @@
               />
 
               <h6 class="fw-bold text-primary mt-4 mb-2">
-                Headteacher Remarks
+                Head Teacher's Remarks
               </h6>
               <CFormTextarea
                 v-model="selectedRecord.head_teacher_remarks"
