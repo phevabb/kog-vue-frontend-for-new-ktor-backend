@@ -508,7 +508,7 @@ async function fetchUsers() {
     const raw = response?.data || [];
     studentOptions.value = Array.isArray(raw) ? raw : raw.results || [];
   } catch (err) {
-    console.error("fetchUsers error: print", err);
+
     toast.error("Failed to load students for discount selector", {
       position: "top-right",
     });

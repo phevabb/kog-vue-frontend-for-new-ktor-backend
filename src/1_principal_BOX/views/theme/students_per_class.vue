@@ -59,6 +59,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { get_students_grouped_by_class_insignt } from '../../../services/api'
 
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
+
 const isLoading = ref(false)
 const errorMessage = ref('')
 const records = ref([])
@@ -82,6 +86,8 @@ async function loadRecords() {
     const rows = await get_students_grouped_by_class_insignt()
     records.value = rows.data || rows
   } catch (err) {
+    toast.error('Failed to load fee records. Please try again.')
+
     errorMessage.value = err?.message || 'Failed to load fee records.'
   } finally {
     isLoading.value = false

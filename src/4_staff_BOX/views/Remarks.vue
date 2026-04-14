@@ -208,7 +208,12 @@ import { get_academic_comments, create_academic_comment } from '@/services/api'
 const staffRaw = localStorage.getItem('staff')
 const staff = staffRaw ? JSON.parse(staffRaw) : null
 
-const assignedClassName = staff?.assigned_class || null
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
+
+const assignedClassName = staff?.assignedClass.name || null
+
 
 /* UI display context */
 const context = {
@@ -227,7 +232,7 @@ const saved = ref(false)
 /* ✅ Fetch academic records for teacher's class */
 const fetchAcademicComments = async () => {
   if (!assignedClassName) {
-
+    toast.error('No assigned class found for staff. Cannot load academic comments.')
     return
   }
 
@@ -295,6 +300,7 @@ const saveRemarks = async () => {
 
     saved.value = true
   } catch (error) {
+
     if (error.response && error.response.data) {
       fieldErrors.value = error.response.data
     }

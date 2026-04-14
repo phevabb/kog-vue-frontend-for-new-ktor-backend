@@ -11,7 +11,7 @@ const api = axios.create({
  // baseURL: 'http://127.0.0.1:8000/api/',
 
 
-baseURL: 'https://feessystem-aidooemmanuelkwame1416-zluuv6f0.leapcell.dev/api/',
+ baseURL: 'https://feessystem-aidooemmanuelkwame1416-zluuv6f0.leapcell.dev/api/',
 
 
   headers: {

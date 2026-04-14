@@ -15,26 +15,26 @@ export default [
 
 
 
-  { component: 'CNavTitle', name: 'My class' },
+  // { component: 'CNavTitle', name: 'My class' },
 
 
 
-  {
-    component: 'CNavItem',
-    name: 'Class Analysis',
-    to: { name: 'ClassAnalysis' },
-    icon: cilSpreadsheet,
-  },
+  // {
+  //   component: 'CNavItem',
+  //   name: 'Class Analysis',
+  //   to: { name: 'ClassAnalysis' },
+  //   icon: cilSpreadsheet,
+  // },
 
-  { component: 'CNavTitle', name: 'Attendance' },
+  // { component: 'CNavTitle', name: 'Attendance' },
 
 
-  {
-    component: 'CNavItem',
-    name: 'Class Attendance',
-    to: { name: 'Attendance' },
-    icon: cilCalculator,
-  },
+  // {
+  //   component: 'CNavItem',
+  //   name: 'Class Attendance',
+  //   to: { name: 'Attendance' },
+  //   icon: cilCalculator,
+  // },
 
 
   { component: 'CNavTitle', name: 'Remarks' },
