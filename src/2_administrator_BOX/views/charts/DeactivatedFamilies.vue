@@ -146,7 +146,7 @@ import {
   get_deactivated_families,
   activate_deactivated_family,
   get_staff,
-  create_staff,
+  create_staff_ktor,
   update_deactivated_family,
   delete_deactivated_family,
 } from '@/services/api'
@@ -411,7 +411,7 @@ const submitForm = async () => {
 
 
 
-const response = await create_staff(finalPayload);
+const response = await create_staff_ktor(finalPayload);
 
 
       toast.success("Staff created!");
