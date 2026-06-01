@@ -60,7 +60,7 @@
     <CModalTitle>Confirm Deletion</CModalTitle>
   </CModalHeader>
   <CModalBody>
-    Are you sure you want to delete <strong>{{ yearToDelete?.name }}</strong>?This action cannot be reversed.
+    Are you sure you want to delete <strong>{{ yearToDelete?.name }}</strong>?This action cannot be reversed. All students will be demoted to the previous class.
   </CModalBody>
   <CModalFooter>
     <CButton color="secondary" variant="outline" @click="cancelDelete">Cancel</CButton>
@@ -72,7 +72,7 @@
   <!-- Modal -->
   <CModal :visible="showFormModal" @close="closeFormModal">
     <CModalHeader>
-      <CModalTitle>{{ isEdit ? 'Edit Academic Year' : 'Add Academic Year' }}</CModalTitle>
+      <CModalTitle>{{ isEdit ? 'Edit Academic Year' : 'Add Academic Year. This will promote all students to the next class' }}</CModalTitle>
     </CModalHeader>
     <CModalBody>
       <CFormLabel>Name</CFormLabel>

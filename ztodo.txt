@@ -9,12 +9,11 @@ local admin: 85940393  4248
 
 
 local student:  Mirabel Arhin
-4807 78016000
+1624 34481562
 
- "student": {
-      "id": 312,
-      "name": "Mirabel Arhin",
-      "userId": "78016000"
+principal:
+principal local: 7163 82929083
+official principal: 4269 1936889416000"
 
 
 
@@ -63,3 +62,7 @@ django advertitsation part
 clear cloudinary of old photos
 
 
+////////////////////
+Check all toast error messages
+
+creating new year promotion message.

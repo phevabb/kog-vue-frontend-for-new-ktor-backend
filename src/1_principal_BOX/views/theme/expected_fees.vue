@@ -49,9 +49,9 @@
                 <CTableDataCell>{{ row.className }}</CTableDataCell>
                 <CTableDataCell>{{ row.term }}</CTableDataCell>
                 <CTableDataCell>{{ row.academicYear}}</CTableDataCell>
-                <CTableDataCell class="text-end">{{ formatNumber(row.expectedAmount) }}</CTableDataCell>
-                <CTableDataCell class="text-end">{{ formatNumber(row.collectedAmount) }}</CTableDataCell>
-                <CTableDataCell class="text-end">{{ formatNumber(row.pendingAmount) }}</CTableDataCell>
+                <CTableDataCell>{{ formatNumber(row.expectedAmount) }}</CTableDataCell>
+                <CTableDataCell>{{ formatNumber(row.collectedAmount) }}</CTableDataCell>
+                <CTableDataCell>{{ formatNumber(row.pendingAmount) }}</CTableDataCell>
               </CTableRow>
             </CTableBody>
           </CTable>

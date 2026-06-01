@@ -277,26 +277,7 @@ const student = ref(null)               // THE LOGGED-IN STUDENT
 /* ----------------------------------------------------
    LOAD STUDENT FROM LOCALSTORAGE
 ---------------------------------------------------- */
-function loadStudent() {
-  try {
-    const stored = localStorage.getItem('user')
 
-
-    const res = get_profile_picture(JSON.parse(stored)?.id)
-    res.then(response => {
-      if (response?.data?.profile_picture) {
-        profilpic.value.profile_picture = response.data.profile_picture
-      }
-    }).catch(err => {
-
-    })
-
-    if (!stored) return null
-    return JSON.parse(stored)
-  } catch {
-    return null
-  }
-}
 
 const profilpic = ref({
   profile_picture: "",
@@ -308,8 +289,9 @@ const profilpic = ref({
 ---------------------------------------------------- */
 async function fetchReportCard() {
   loading.value = true
-  const stu = loadStudent()
 
+const stored = localStorage.getItem('user')
+    const stu = JSON.parse(stored)
 
   student.value = stu
 
@@ -320,7 +302,15 @@ async function fetchReportCard() {
   }
 
   try {
+
     const response = await getReportCardByUser_ktor(stu.userId)
+
+
+    profilpic.value.profile_picture = response?.data[0]?.student?.profilePictureUrl || ''
+
+
+
+
 
 
 

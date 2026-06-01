@@ -14,7 +14,7 @@
               <CButton class="text-white" color="primary" size="sm" @click="openAddModal">
                 Add Administrator
               </CButton>
-              <small> Default password for Administrator is: TempPassword123!</small>
+
             </div>
           </div>
         </CCardHeader>
@@ -30,12 +30,13 @@
 
                 <CTableHeaderCell>#</CTableHeaderCell>
                 <CTableHeaderCell>Name</CTableHeaderCell>
-                <CTableHeaderCell>Email</CTableHeaderCell>
-                <CTableHeaderCell>Gender</CTableHeaderCell>
+
+                <CTableHeaderCell>ID</CTableHeaderCell>
+                <CTableHeaderCell>pin</CTableHeaderCell>
 
 
 
-                <CTableHeaderCell>Status</CTableHeaderCell>
+                <!-- <CTableHeaderCell>Status</CTableHeaderCell> -->
                 <CTableHeaderCell class="text-end">Actions</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
@@ -44,18 +45,20 @@
               <CTableRow v-for="(row, idx) in  staff" :key="row.id">
 
                 <CTableHeaderCell>{{ idx + 1 }}</CTableHeaderCell>
-                <CTableDataCell>{{ row.full_name }}</CTableDataCell>
-                <CTableDataCell>{{ row.email }}</CTableDataCell>
+                <CTableDataCell>{{ row.user.fullName }}</CTableDataCell>
 
-                <CTableDataCell>{{ row.gender }}</CTableDataCell>
+                <CTableDataCell>{{ row.user.userId }}</CTableDataCell>
+
+                <CTableDataCell>{{ row.user.pin }}</CTableDataCell>
 
 
 
-                <CTableDataCell>
+                <!-- <CTableDataCell>
                   <CBadge :color="row.is_active ? 'success' : 'secondary'">
                     {{ row.is_active ? 'Active' : 'Inactive' }}
                   </CBadge>
-                </CTableDataCell>
+                </CTableDataCell> -->
+
                 <CTableDataCell class="text-end">
                   <CButtonGroup size="sm">
                     <CButton color="secondary" variant="outline" @click="openEditModal(row)">Edit</CButton>
@@ -100,28 +103,28 @@
     <CModalBody>
       <div class="mb-3">
         <CFormLabel>Full Name</CFormLabel>
-        <CFormInput v-model="form.full_name" />
+        <CFormInput v-model="form.user.fullName" />
       </div>
 
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <CFormLabel>Email</CFormLabel>
         <CFormInput v-model="form.email" />
-      </div>
+      </div> -->
 
-      <div class="mb-3">
+      <!-- <div class="mb-3">
       <CFormLabel>Gender</CFormLabel>
       <CFormSelect v-model="form.gender">
         <option disabled value="">Select Gender</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
       </CFormSelect>
-    </div>
+    </div> -->
 
 
 
 
 
-      <CButton color="primary" @click="submitForm">
+      <CButton class="text-white" color="primary" @click="submitForm">
         {{ isEdit ? 'Update' : 'Create' }}
       </CButton>
     </CModalBody>
@@ -131,10 +134,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import {
-  get_administrators,
-  create_administrator,
-  update_administrator,
-  delete_administrator,
+  get_administrators_ktor,
+  create_administrator_ktor,
+  update_administrator_ktor,
+  delete_administrator_ktor
 } from '@/services/api'
 
 
@@ -165,20 +168,20 @@ const confirmDelete = async () => {
 
   try {
     const idtodelete = staffToDelete.value.id
-    const fullNameToDelete = staffToDelete.value.full_name
+    const fullNameToDelete = staffToDelete.value.fullName
 
 
-    const res = await delete_administrator(staffToDelete.value.id)
+    const res = await delete_administrator_ktor(staffToDelete.value.id)
 
 
     staff.value = staff.value.filter(s => s.id !== idtodelete)
 
 
 
-    toast.success(`${fullNameToDelete} deleted successfully!`, { position: 'top-right' })
+    toast.success(`Administrator deleted successfully!`, { position: 'top-right' })
   } catch (error) {
 
-    toast.error('Failed to delete staff. Please try again.', { position: 'top-right' })
+    toast.error('Failed to delete administrator. Please try again.', { position: 'top-right' })
   } finally {
     loading.value = false
     staffToDelete.value = null
@@ -191,7 +194,7 @@ async function fetchAdministrators() {
   loading.value = true
   errorMessage.value = ''
   try {
-    const response = await get_administrators()
+    const response = await get_administrators_ktor()
 
 
     staff.value = response.data
@@ -230,16 +233,15 @@ const isEdit = ref(false)
 const currentStaff = ref(null)
 
 const form = ref({
-
-    full_name: '',
-    gender: '',            // 'male' | 'female'
-
-    date_of_birth: '',     // 'YYYY-MM-DD' string for <input type="date">
-    role: "administrator",
-    email: ''
-
+  user: {
+    fullName: '',
+    gender: '',
+    dateOfBirth: '',
+    role: 'administrator',
+    isStaff: true,
+    isActive: true
+  }
 })
-
 
 const deleteStaff = (staff) => {
   staffToDelete.value = staff
@@ -262,85 +264,86 @@ const filteredStaff = computed(() => {
 
 
 const openAddModal = () => {
-  isEdit.value = false;
-  currentStaff.value = null;
+  isEdit.value = false
+  currentStaff.value = null
 
   form.value = {
     user: {
-      full_name: '',
+      fullName: '',
       gender: '',
-
-      date_of_birth: '', // match backend field name
-      role: 'staff'
+      dateOfBirth: '',
+      role: 'administrator',
+      isStaff: true,
+      isActive: true
     }
-  };
+  }
 
-  showFormModal.value = true;
-};
+  showFormModal.value = true
+}
 
 const openEditModal = (staffMember) => {
-  isEdit.value = true;
-  currentStaff.value = staffMember;
+  isEdit.value = true
+  currentStaff.value = staffMember
 
-  const user = staffMember || {}; // safe check
+  const user = staffMember?.user || staffMember || {}
 
   form.value = {
     user: {
-      full_name: user.full_name || '',
+      fullName: user.fullName || '',
       gender: user.gender ? user.gender.toLowerCase() : '',
-
-      date_of_birth: user.date_of_birth || '',
-      role: user.role || 'staff'
+      dateOfBirth: user.dateOfBirth || '',
+      role: user.role || 'administrator',
+      isStaff: user.isStaff ?? true,
+      isActive: user.isActive ?? true
     }
-  };
+  }
 
-  showFormModal.value = true;
-};
-
-
+  showFormModal.value = true
+}
 
 const closeFormModal = () => {
   showFormModal.value = false
   currentStaff.value = null
 }
+
+
 const submitForm = async () => {
-  loading.value = true;
+  loading.value = true
 
   try {
     const payload = {
-  full_name: form.value.full_name.trim() || null,
-  gender: (form.value.gender || 'male').toLowerCase(),
-  date_of_birth: form.value.date_of_birth || '2002-02-02',
-  role: 'administrator',
-  is_active: true,
-  password: 'TempPassword123!',  // required for creation
-  email: form.value.email.trim() || null,
-};
+      user: {
+        fullName: form.value.user.fullName.trim(),
+        gender: (form.value.user.gender || 'male').toLowerCase(),
+        dateOfBirth: form.value.user.dateOfBirth || '2002-02-02',
+        role: 'administrator',
+        isStaff: true,
+        isActive: true
+      }
+    }
+
 
 
     if (isEdit.value && currentStaff.value) {
-      await update_administrator(currentStaff.value.id, payload);
-      toast.success("Administrator updated!");
+      const t =await update_administrator_ktor(currentStaff.value.id, payload)
+
+
+      toast.success("Administrator updated!")
     } else {
+      const response = await create_administrator_ktor(payload)
 
-
-        const response = await create_administrator(payload); // <-- call API
-
-      toast.success("Administrator created!");
+      toast.success("Administrator created!")
     }
 
-    closeFormModal();
-    fetchAdministrators();
-
+    closeFormModal()
+    fetchAdministrators()
   } catch (error) {
 
-    toast.error("Failed to save administrator.");
+    toast.error("Failed to save administrator.")
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
-
-
+}
 
 </script>
 

@@ -761,7 +761,7 @@ async function uploadCurrentProfilePicture(accountId, { silent = false } = {}) {
     if (!silent) toast.success("Profile picture uploaded successfully ✅")
     return res.data
   } catch (err) {
-    console.error("Profile picture upload error: print", err)
+
     if (!silent) {
       toast.error(
         err?.response?.data?.error ||
@@ -793,7 +793,7 @@ async function removeCurrentProfilePicture(accountId) {
 
     toast.success("Profile picture removed successfully ✅")
   } catch (err) {
-    console.error("Profile picture delete error: prints", err)
+
     toast.error(
       err?.response?.data?.error ||
       err?.response?.data?.message ||

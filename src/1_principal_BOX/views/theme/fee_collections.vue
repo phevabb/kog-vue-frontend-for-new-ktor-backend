@@ -46,9 +46,9 @@
                 <CTableHeaderCell scope="row">{{ idx + 1 }}</CTableHeaderCell>
 
                 <CTableDataCell>{{ row.term }}</CTableDataCell>
-                <CTableDataCell>{{ row.academic_year }}</CTableDataCell>
-                <CTableDataCell>{{ formatNumber(row.collected_amount) }}</CTableDataCell>
-                <CTableDataCell>{{ formatNumber(row.pending_amount) }}</CTableDataCell>
+                <CTableDataCell>{{ row.academicYear }}</CTableDataCell>
+                <CTableDataCell>{{ formatNumber(row.collectedAmount) }}</CTableDataCell>
+                <CTableDataCell>{{ formatNumber(row.pendingAmount) }}</CTableDataCell>
 
 
 
@@ -67,7 +67,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { get_collected_vs_pending_insight } from '../../../services/api'
+import { get_collected_vs_pending_insight_ktor } from '../../../services/api'
 
 const isLoading = ref(false)
 const errorMessage = ref('')
@@ -100,7 +100,8 @@ async function loadRecords() {
   isLoading.value = true
   errorMessage.value = ''
   try {
-    const rows = await get_collected_vs_pending_insight()
+    const rows = await get_collected_vs_pending_insight_ktor()
+
 
 
 

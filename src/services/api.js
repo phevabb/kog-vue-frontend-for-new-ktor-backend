@@ -5,7 +5,7 @@ import axios from 'axios'
 const api = axios.create({
       // baseURL: 'http://127.0.0.1:8080/api/', // Ktor development serverserver
 
-     baseURL: 'https://kog-ktor-backend-production.up.railway.app/api/', // RAILWAY production (default for production)
+ baseURL: 'https://kog-ktor-backend-production.up.railway.app/api/', // RAILWAY production (default for production)
 
 
 
@@ -178,7 +178,10 @@ export const rawst_ktor_paginated = (page, limit, search) =>
     }
   })
 
-export const get_num_of_students_insignt = () => api.get("student/students/total/");
+
+
+export const get_num_of_students_insignt_ktor = () => api.get("student/number");
+
 
 
 
@@ -322,7 +325,10 @@ export const get_expected_fees_insight = () => api.get("fees/student-fee-records
 
 export const get_expected_fees_insight_ktor = () => api.get("principal/fees/expected_fees");
 
+
 export const get_collected_vs_pending_insight = () => api.get("fees/student-fee-records/collection_summary/");
+export const get_collected_vs_pending_insight_ktor = () => api.get("principal/collection-summary");
+
 export const percentage_paid_by_class_insight = () => api.get("fees/student-fee-records/unpaid_percentage_by_class/");
 export const students_with_balance_insight = () => api.get("fees/student-fee-records/students_with_balance/");
 export const update_student_fee_record = (id, payload) => api.put(`fees/student-fee-records/${id}/`, payload);
@@ -333,10 +339,24 @@ export const update_student_fee_record = (id, payload) => api.put(`fees/student-
 export const get_terms_with_year = () => api.get("student/current-term");
 
 export const get_administrators = () => api.get("administrators/");
+export const get_administrators_ktor = () => api.get("admin/raw");
+
+
 export const get_administrators_count = () => api.get("administrators/count/");
+export const get_administrators_count_ktor = () => api.get("principal/admin-number");
+
 export const create_administrator = (payload) => api.post("administrators/", payload);
+
+
+export const create_administrator_ktor = (payload) => api.post("admin", payload);
+
+
 export const update_administrator = (id, payload) => api.put(`administrators/${id}/`, payload);
+export const update_administrator_ktor = (id, payload) => api.patch(`admin/${id}`, payload);
+
+
 export const delete_administrator = (id) => api.delete(`administrators/${id}/`);
+export const delete_administrator_ktor = (id) => api.delete(`admin/${id}`);
 
 // AUTH APIs
 
@@ -405,6 +425,7 @@ export const update_staff_ktor = (id, payload) => api.patch(`staff/${id}`, paylo
 export const delete_staff_ktor = (id) => api.delete(`staff/${id}`);
 
 export const num_of_staff_insight = () => api.get("staff/staff-profiles/total_teachers");
+export const num_of_staff_insight_ktor = () => api.get("principal/staff-number");
 
 export const get_teacher_student = () => api.get("staff/teacher-students");
 
