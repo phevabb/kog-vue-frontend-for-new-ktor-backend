@@ -123,6 +123,8 @@ export default [
     icon: 'cil-chart-pie',
   },
 
+
+
 ]
 
 

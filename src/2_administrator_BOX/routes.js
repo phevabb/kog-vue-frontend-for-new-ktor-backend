@@ -1,11 +1,14 @@
-
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 export const adminRoutes = {
   path: '/administrator',
   component: DefaultLayout,
-  meta: { requiresAuth: true, roles: ['administrator'] },
-  redirect: { name: 'Dashboard' },
+  meta: {
+    requiresAuth: true,
+    roles: ['administrator'],
+  },
+  redirect: { name: 'student_fee_records_admin' },
+
   children: [
     {
       path: 'dashboard',
@@ -14,6 +17,7 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/dashboard/Dashboard.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'fees/student-fee-structure',
       name: 'student_fee_structure',
@@ -22,7 +26,7 @@ export const adminRoutes = {
       meta: { roles: ['administrator'] },
     },
 
-{
+    {
       path: 'subjects',
       name: 'subjects',
       component: () =>
@@ -37,6 +41,7 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/charts/Categories.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'promotions',
       name: 'promotions',
@@ -45,9 +50,6 @@ export const adminRoutes = {
       meta: { roles: ['administrator'] },
     },
 
-
-
-
     {
       path: 'fees/student-fee-payments',
       name: 'student_fee_payments',
@@ -55,6 +57,7 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/theme/student_fee_payments.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'fees/student-fee-records',
       name: 'student_fee_records_admin',
@@ -62,12 +65,15 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/theme/student_fee_records.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'fees/family',
       name: 'families',
-      component: () => import('@/2_administrator_BOX/views/charts/Family.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/charts/Family.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'fees/family-fee-records',
       name: 'family_fee_records',
@@ -75,6 +81,7 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/charts/FamilyRecords.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'fees/family-fee-payments',
       name: 'family_fee_payments',
@@ -82,6 +89,7 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/charts/FamilyPayments.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'staff',
       name: 'staffProfile',
@@ -90,9 +98,6 @@ export const adminRoutes = {
       meta: { roles: ['administrator'] },
     },
 
-
-
-    // Deactivated Students Route
     {
       path: 'deactivatedStudents',
       name: 'deactivatedStudents',
@@ -101,16 +106,6 @@ export const adminRoutes = {
       meta: { roles: ['administrator'] },
     },
 
-    // Deactivated Families Route
-    {
-      path: 'deactivatedFamilies',
-      name: 'deactivatedFamilies',
-      component: () =>
-        import('@/2_administrator_BOX/views/charts/StaffProfile.vue'),
-      meta: { roles: ['administrator'] },
-    },
-
-
     {
       path: 'student',
       name: 'studentProfile',
@@ -118,6 +113,7 @@ export const adminRoutes = {
         import('@/2_administrator_BOX/views/charts/StudentProfile.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'academic-years',
       name: 'academicYears',
@@ -142,55 +138,60 @@ export const adminRoutes = {
       meta: { roles: ['administrator'] },
     },
 
-
     {
       path: 'classes',
       name: 'classes',
-      component: () => import('@/2_administrator_BOX/views/charts/Classes.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/charts/Classes.vue'),
       meta: { roles: ['administrator'] },
     },
 
     {
       path: 'grade-scales',
       name: 'grading_scales',
-      component: () => import('@/2_administrator_BOX/views/charts/GradingScales.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/charts/GradingScales.vue'),
       meta: { roles: ['administrator'] },
     },
 
     {
       path: 'subject-scores',
       name: 'subject_scores',
-      component: () => import('@/2_administrator_BOX/views/charts/SubjectScores.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/charts/SubjectScores.vue'),
       meta: { roles: ['administrator'] },
     },
-
 
     {
       path: 'academic-records',
       name: 'academic_records',
-      component: () => import('@/2_administrator_BOX/views/charts/AdminAcademicRecords.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/charts/AdminAcademicRecords.vue'),
       meta: { roles: ['administrator'] },
     },
-
-
-
-
 
     {
       path: 'terms',
       name: 'terms',
-      component: () => import('@/2_administrator_BOX/views/charts/Terms.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/charts/Terms.vue'),
       meta: { roles: ['administrator'] },
     },
+
     {
       path: 'widgets',
       name: 'widgets',
-      component: () => import('@/2_administrator_BOX/views/widgets/Widgets.vue'),
+      component: () =>
+        import('@/2_administrator_BOX/views/widgets/Widgets.vue'),
       meta: { roles: ['administrator'] },
     },
 
-
-
-
+    {
+      path: 'send-sms',
+      name: 'send_sms',
+      component: () =>
+        import('@/2_administrator_BOX/views/widgets/SendSMS.vue'),
+      meta: { roles: ['administrator'] },
+    },
   ],
 }

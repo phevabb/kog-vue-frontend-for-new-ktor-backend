@@ -65,4 +65,6 @@ clear cloudinary of old photos
 ////////////////////
 Check all toast error messages
 
-creating new year promotion message.
+creating new year promotion message. DONE
+///////////
+protect all frontend route. DONE

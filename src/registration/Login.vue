@@ -127,9 +127,16 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 // ✅ store only what you actually receive from Ktor
-function storeAuth(token: string, user: any) {
+function storeAuth(token: string, user: any, role: string) {
   localStorage.setItem('token', token)
-  localStorage.setItem('user', JSON.stringify(user))
+
+  localStorage.setItem(
+    'user',
+    JSON.stringify({
+      ...user,
+      role,
+    }),
+  )
 }
 
 function clearAuth() {
@@ -140,13 +147,14 @@ function clearAuth() {
 }
 
 function nextTarget() {
-  const redirectName = route?.query?.redirect as string | undefined
-  if (redirectName) {
-    const resolved = router.resolve({ name: redirectName })
-    if (resolved?.name) return { name: redirectName }
+  const redirectPath = route?.query?.redirect as string | undefined
+
+  if (redirectPath) {
+    return redirectPath
   }
 
   let user: any = null
+
   try {
     const raw = localStorage.getItem('user')
     if (raw) user = JSON.parse(raw)
@@ -178,7 +186,7 @@ async function onSubmit() {
     const token = data?.access
     if (!token) throw new Error('No token received')
 
-    storeAuth(token, data.user)
+    storeAuth(token, data.user, data.role)
 
     toast.success('Login successful')
 

@@ -161,5 +161,15 @@ export default [
     to: { name: 'academic_records' },
     icon: cilLibrary,
   },
+   {
+    component: 'CNavTitle',
+    name: 'Notifications',
+  },
+  {
+    component: 'CNavItem',
+    name: 'Send SMS',
+    to: { name: 'send_sms' },
+    icon: cilLibrary,
+  },
 
 ]
